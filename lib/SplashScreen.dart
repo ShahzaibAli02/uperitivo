@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:uperitivo/Screens/UserAccount/login.dart';
+import 'package:uperitivo/Screens/UserAccount/register_main.dart';
 import 'package:uperitivo/Utils/helpers.dart';
 
 class SplashScreen extends StatelessWidget {
@@ -72,7 +73,9 @@ class SplashScreen extends StatelessWidget {
                     ),
                   ),
                   InkWell(
-                    onTap: () {},
+                    onTap: () {
+                      getScreen(context, () => const RegisterMain());
+                    },
                     child: Column(
                       children: [
                         const Text(
