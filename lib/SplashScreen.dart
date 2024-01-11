@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:uperitivo/Controller/user_firebase_controller.dart';
+import 'package:uperitivo/Models/user_model.dart';
 import 'package:uperitivo/Screens/UserAccount/login.dart';
 import 'package:uperitivo/Screens/UserAccount/register_main.dart';
+import 'package:uperitivo/Screens/bottom_navigation.dart';
 import 'package:uperitivo/Utils/helpers.dart';
 
 class SplashScreen extends StatelessWidget {
@@ -28,7 +31,24 @@ class SplashScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () async {
+                  RegisterController registerController = RegisterController();
+                  UserModel? user = await registerController.getSignedInUser();
+                  print(user?.email);
+                  if (user != null) {
+                    if (context.mounted) {
+                      updateCurrentUser(user, context);
+                    }
+                    if (context.mounted) {
+                      getScreen(context, () => const BottomNavigation(),
+                          removePreviousScreens: true);
+                    }
+                  } else {
+                    if (context.mounted) {
+                      getScreen(context, () => const LoginScreen());
+                    }
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF5887DC),
                   fixedSize: const Size(167, 51),

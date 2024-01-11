@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:uperitivo/Models/user_model.dart';
+import 'package:uperitivo/Provider/user_provider.dart';
 
 void showSuccessSnackBar(BuildContext context, String message) {
   ScaffoldMessenger.of(context).showSnackBar(
@@ -57,4 +60,14 @@ BoxDecoration getBackground() {
       fit: BoxFit.cover,
     ),
   );
+}
+
+void updateCurrentUser(UserModel user, BuildContext context) {
+  final userProvider = Provider.of<UserProvider>(context, listen: false);
+  userProvider.updateCurrentUser(user);
+}
+
+UserModel? getCurrentUser(BuildContext context) {
+  final userProvider = Provider.of<UserProvider>(context, listen: false);
+  return userProvider.currentUser;
 }

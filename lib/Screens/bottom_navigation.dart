@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uperitivo/Screens/Home/home.dart';
 
 class BottomNavigation extends StatefulWidget {
   const BottomNavigation({super.key});
@@ -10,7 +11,7 @@ class BottomNavigation extends StatefulWidget {
 class _BottomNavigationState extends State<BottomNavigation> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = [
+  final List<Widget> _screens = const [
     HomeScreen(),
     EventsScreen(),
     ParticipantsScreen(),
@@ -56,17 +57,6 @@ class _BottomNavigationState extends State<BottomNavigation> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Home Screen'),
     );
   }
 }

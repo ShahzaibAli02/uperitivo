@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:uperitivo/Controller/user_firebase_controller.dart';
+import 'package:uperitivo/Models/user_model.dart';
+import 'package:uperitivo/Screens/AddEvent/image_picker.dart';
+import 'package:uperitivo/Screens/Components/cBButton.dart';
 import 'package:uperitivo/Screens/Components/drawerScreen.dart';
 import 'package:uperitivo/Screens/Components/footer.dart';
 import 'package:uperitivo/Screens/Components/header.dart';
+import 'package:uperitivo/Utils/helpers.dart';
+import 'package:uuid/uuid.dart';
 
 class RegisterMain extends StatefulWidget {
   const RegisterMain({Key? key}) : super(key: key);
@@ -22,6 +28,8 @@ class _RegisterMainState extends State<RegisterMain> {
 
   late TextEditingController nicknameController;
   late TextEditingController nameController;
+  late TextEditingController cmpNameController;
+  late TextEditingController typeOfActivityController;
   late TextEditingController surnameController;
   late TextEditingController viaController;
   late TextEditingController civicoController;
@@ -32,12 +40,16 @@ class _RegisterMainState extends State<RegisterMain> {
   late TextEditingController siteController;
   late TextEditingController cfController;
   late TextEditingController imageController;
+  late TextEditingController passwordController;
+  late TextEditingController confirmPasswordController;
 
   @override
   void initState() {
     super.initState();
     nicknameController = TextEditingController();
     nameController = TextEditingController();
+    cmpNameController = TextEditingController();
+    typeOfActivityController = TextEditingController();
     surnameController = TextEditingController();
     viaController = TextEditingController();
     civicoController = TextEditingController();
@@ -48,6 +60,8 @@ class _RegisterMainState extends State<RegisterMain> {
     siteController = TextEditingController();
     cfController = TextEditingController();
     imageController = TextEditingController();
+    passwordController = TextEditingController();
+    confirmPasswordController = TextEditingController();
   }
 
   @override
@@ -61,7 +75,96 @@ class _RegisterMainState extends State<RegisterMain> {
     provinceController.dispose();
     mobileController.dispose();
     emailController.dispose();
+    siteController.dispose();
+    cfController.dispose();
+    imageController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  Future<void> registerUser() async {
+    String nickname = nicknameController.text;
+    String name = nameController.text;
+    String cmpName = cmpNameController.text;
+    String typeOfActivity = typeOfActivityController.text;
+    String surname = surnameController.text;
+    String via = viaController.text;
+    String civico = civicoController.text;
+    String city = cityController.text;
+    String province = provinceController.text;
+    String mobile = mobileController.text;
+    String email = emailController.text;
+    String site = siteController.text;
+    String cf = cfController.text;
+    String image = imageController.text;
+    String password = passwordController.text;
+    String confirmPassword = confirmPasswordController.text;
+
+    RegisterController registerController = RegisterController();
+    var uuid = const Uuid();
+    var v4 = uuid.v4();
+    UserModel user = UserModel(
+      uid: v4,
+      nickname: nickname,
+      name: name,
+      cmpName: cmpName,
+      typeOfActivity: typeOfActivity,
+      surname: surname,
+      via: via,
+      civico: civico,
+      city: city,
+      province: province,
+      mobile: mobile,
+      email: email,
+      site: site,
+      cf: cf,
+      image: image,
+      userType: "userType",
+    );
+
+    if (firstButtonClicked) {
+      if (nickname.isNotEmpty &&
+          name.isNotEmpty &&
+          surname.isNotEmpty &&
+          via.isNotEmpty &&
+          civico.isNotEmpty &&
+          city.isNotEmpty &&
+          province.isNotEmpty &&
+          mobile.isNotEmpty &&
+          email.isNotEmpty &&
+          password.isNotEmpty &&
+          confirmPassword.isNotEmpty) {
+        if (password != confirmPassword) {
+          showErrorSnackBar(context, "Password,Confirm Password not matched!");
+        } else {
+          user.userType = "person";
+          await registerController.registerUser(user, password, context);
+        }
+      } else {
+        showErrorSnackBar(context, "fill all required* fields");
+      }
+    } else if (secondButtonClicked) {
+      if (cmpName.isNotEmpty &&
+          via.isNotEmpty &&
+          civico.isNotEmpty &&
+          city.isNotEmpty &&
+          province.isNotEmpty &&
+          mobile.isNotEmpty &&
+          email.isNotEmpty &&
+          password.isNotEmpty &&
+          confirmPassword.isNotEmpty &&
+          image.isNotEmpty) {
+        if (password != confirmPassword) {
+          showErrorSnackBar(context, "Password,Confirm Password not matched!");
+        } else {
+          user.userType = "company";
+          await registerController.registerUser(user, password, context);
+        }
+      } else {
+        showErrorSnackBar(context, "fill all required* fields");
+      }
+    }
   }
 
   @override
@@ -147,7 +250,7 @@ class _RegisterMainState extends State<RegisterMain> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20.0),
                         side: const BorderSide(
-                          color: Color(0xFFEC6500), // Border color
+                          color: Color(0xFFEC6500),
                         ),
                       ),
                     ),
@@ -203,13 +306,13 @@ class _RegisterMainState extends State<RegisterMain> {
                         if (secondButtonClicked)
                           CustomTextField(
                             labelText: 'Ragione sociale*',
-                            controller: nicknameController,
+                            controller: cmpNameController,
                           ),
                         const SizedBox(height: 16),
                         if (secondButtonClicked)
                           CustomTextField(
                             labelText: 'Tipologia di locale',
-                            controller: nicknameController,
+                            controller: typeOfActivityController,
                           ),
                         const SizedBox(height: 16),
                         if (firstButtonClicked)
@@ -285,6 +388,18 @@ class _RegisterMainState extends State<RegisterMain> {
                             controller: emailController,
                           ),
                         const SizedBox(height: 16),
+                        if (firstButtonClicked || secondButtonClicked)
+                          CustomTextField(
+                            labelText: 'Password*',
+                            controller: passwordController,
+                          ),
+                        const SizedBox(height: 16),
+                        if (firstButtonClicked || secondButtonClicked)
+                          CustomTextField(
+                            labelText: 'Confirm Password*',
+                            controller: confirmPasswordController,
+                          ),
+                        const SizedBox(height: 16),
                         if (secondButtonClicked)
                           CustomTextField(
                             labelText: 'Sito web',
@@ -298,9 +413,24 @@ class _RegisterMainState extends State<RegisterMain> {
                           ),
                         const SizedBox(height: 16),
                         if (secondButtonClicked)
-                          CustomTextField(
-                            labelText: 'Default image',
-                            controller: imageController,
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text(
+                                  "Default Image",
+                                  style: TextStyle(
+                                    color: Color(0xFF7E84A3),
+                                  ),
+                                ),
+                              ),
+                              ImagePickerComponent(
+                                onImagePicked: (base64Value) {
+                                  imageController.text = base64Value;
+                                },
+                              ),
+                            ],
                           ),
                         const SizedBox(height: 16),
                         // Buttons
@@ -309,7 +439,9 @@ class _RegisterMainState extends State<RegisterMain> {
                             text: 'Salva',
                             textColor: Colors.white,
                             backgroundColor: const Color(0xff298D17),
-                            onPressed: () {},
+                            onPressed: () async {
+                              await registerUser();
+                            },
                           ),
                         const SizedBox(height: 16),
                         if (firstButtonClicked || secondButtonClicked)
@@ -379,50 +511,6 @@ class CustomTextField extends StatelessWidget {
           borderSide: const BorderSide(
             color: Color(0xFF707070),
             width: 1.0,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class CustomOutlinedButton extends StatelessWidget {
-  final String text;
-  final Color textColor;
-  final Color backgroundColor;
-  final VoidCallback onPressed;
-
-  const CustomOutlinedButton({
-    Key? key,
-    required this.text,
-    required this.textColor,
-    this.backgroundColor = Colors.white,
-    required this.onPressed,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onPressed,
-      child: Container(
-        height: 48,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10.0),
-          color: backgroundColor,
-          border: Border.all(
-            color: backgroundColor == Colors.white
-                ? const Color(0xFFD5D7E3)
-                : backgroundColor,
-            width: 2,
-          ),
-        ),
-        child: Center(
-          child: Text(
-            text,
-            style: TextStyle(
-              color: textColor,
-              fontWeight: FontWeight.bold,
-            ),
           ),
         ),
       ),

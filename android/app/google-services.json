@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "898207725876",
+    "project_id": "uperitivo-b5e06",
+    "storage_bucket": "uperitivo-b5e06.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:898207725876:android:22e791ae3270dbee284d61",
+        "android_client_info": {
+          "package_name": "com.uper.itivo.uperitivo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_wU_sN1utT7fn3ZcC43xXjHDQLXchsv4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

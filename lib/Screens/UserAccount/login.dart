@@ -1,5 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:uperitivo/Controller/user_firebase_controller.dart';
+import 'package:uperitivo/Models/user_model.dart';
+import 'package:uperitivo/Screens/Components/cTBTextField.dart';
 import 'package:uperitivo/Screens/Components/drawerScreen.dart';
 import 'package:uperitivo/Screens/Components/footer.dart';
 import 'package:uperitivo/Screens/Components/header.dart';
@@ -15,6 +18,15 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
+  late TextEditingController usernameController;
+  late TextEditingController passwordController;
+
+  @override
+  void initState() {
+    super.initState();
+    usernameController = TextEditingController();
+    passwordController = TextEditingController();
+  }
 
   void _openDrawer() {
     _scaffoldKey.currentState?.openEndDrawer();
@@ -52,58 +64,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    TextField(
-                      textAlign: TextAlign.center,
-                      decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 15.0, horizontal: 10.0),
-                        hintText: 'User name',
-                        hintStyle: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFEC6500),
-                            width: 2.0,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFEC6500),
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
+                    CTBTextField(
+                      hintText: "User name",
+                      controller: usernameController,
                     ),
                     const SizedBox(height: 16),
-                    TextField(
-                      textAlign: TextAlign.center,
-                      decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 15.0, horizontal: 10.0),
-                        hintText: 'Password',
-                        hintStyle: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFEC6500),
-                            width: 2.0,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFEC6500),
-                            width: 2.0,
-                          ),
-                        ),
-                      ),
+                    CTBTextField(
+                      hintText: "Password",
+                      controller: passwordController,
                     ),
                     const SizedBox(height: 20),
                     Text.rich(
@@ -140,9 +108,29 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
-                          getScreen(context, () => BottomNavigation(),
-                              removePreviousScreens: true);
+                        onPressed: () async {
+                          RegisterController registerController =
+                              RegisterController();
+                          String email = usernameController.text;
+                          String password = passwordController.text;
+                          if (email.isNotEmpty && password.isNotEmpty) {
+                            UserModel? user = await registerController
+                                .signInWithEmailAndPassword(email, password);
+                            if (user != null) {
+                              if (mounted) {
+                                getScreen(
+                                    context, () => const BottomNavigation(),
+                                    removePreviousScreens: true);
+                              }
+                            } else {
+                              if (mounted) {
+                                showErrorSnackBar(
+                                    context, "Invalid username or password");
+                              }
+                            }
+                          } else {
+                            showErrorSnackBar(context, "Fill both fields");
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF5887DC),
