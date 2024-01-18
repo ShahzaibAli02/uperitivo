@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:uperitivo/Controller/user_firebase_controller.dart';
+import 'package:uperitivo/Events/events_screen.dart';
 import 'package:uperitivo/Screens/Home/home.dart';
+import 'package:uperitivo/SplashScreen.dart';
+import 'package:uperitivo/Utils/helpers.dart';
 
 class BottomNavigation extends StatefulWidget {
   const BottomNavigation({super.key});
@@ -11,7 +15,7 @@ class BottomNavigation extends StatefulWidget {
 class _BottomNavigationState extends State<BottomNavigation> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = const [
+  final List<Widget> _screens = [
     HomeScreen(),
     EventsScreen(),
     ParticipantsScreen(),
@@ -61,17 +65,6 @@ class _BottomNavigationState extends State<BottomNavigation> {
   }
 }
 
-class EventsScreen extends StatelessWidget {
-  const EventsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Events Screen'),
-    );
-  }
-}
-
 class ParticipantsScreen extends StatelessWidget {
   const ParticipantsScreen({super.key});
 
@@ -99,8 +92,16 @@ class PreviousScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Previous Screen'),
+    return Center(
+      child: ElevatedButton(
+        onPressed: () async {
+          await RegisterController().signOut(context);
+          if (context.mounted) {
+            getScreen(context, () => SplashScreen());
+          }
+        },
+        child: const Text('Sign Out'),
+      ),
     );
   }
 }

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:uperitivo/Controller/user_firebase_controller.dart';
+import 'package:uperitivo/Models/event_model.dart';
 import 'package:uperitivo/Screens/AddEvent/event_category.dart';
+import 'package:uperitivo/Screens/AddEvent/event_day.dart';
 import 'package:uperitivo/Screens/AddEvent/image_picker.dart';
 import 'package:uperitivo/Screens/Components/cBButton.dart';
 import 'package:uperitivo/Screens/Components/cTBTextField.dart';
@@ -7,6 +10,8 @@ import 'package:uperitivo/Screens/Components/drawerScreen.dart';
 import 'package:uperitivo/Screens/Components/eventDatePickerRow.dart';
 import 'package:uperitivo/Screens/Components/footer.dart';
 import 'package:uperitivo/Screens/Components/header.dart';
+import 'package:uperitivo/Utils/helpers.dart';
+import 'package:uuid/uuid.dart';
 
 class AddEventHome extends StatefulWidget {
   const AddEventHome({Key? key}) : super(key: key);
@@ -17,14 +22,55 @@ class AddEventHome extends StatefulWidget {
 
 class _AddEventHomeState extends State<AddEventHome> {
   GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
-  late TextEditingController nicknameController;
   late TextEditingController eventNameController;
+  late TextEditingController descriptionController;
+  late TextEditingController eventDateController;
+  late TextEditingController eventTimeController;
+  late TextEditingController ueventDateController;
+  late TextEditingController ueventTimeController;
+  late TextEditingController imageController;
+  String eventDate = "";
+  String eventTime = "";
+  bool isUniqueEvent = false;
+  String eventDay = "";
+  String dateFinalAt = "";
+  String category = "";
+  String categoryColor = "";
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     eventNameController = TextEditingController();
+    descriptionController = TextEditingController();
+    eventDateController = TextEditingController();
+    eventTimeController = TextEditingController();
+    imageController = TextEditingController();
+  }
+
+  void addEvent() {
+    String eventName = eventNameController.text;
+    String eventDescription = descriptionController.text;
+    String image = imageController.text;
+    String eventDate = eventDateController.text;
+    String eventTime = eventTimeController.text;
+    var uuid = const Uuid();
+    String eventId = uuid.v4();
+    EventModel event = EventModel(
+        eventId: eventId,
+        eventName: eventName,
+        eventDescription: eventDescription,
+        eventDate: eventDate,
+        eventTime: eventTime,
+        eventType: isUniqueEvent ? "special" : "recurring",
+        category: category,
+        categoryColor: categoryColor,
+        image: image,
+        participants: [],
+        untilDate: dateFinalAt,
+        day: eventDay,
+        recurring: !isUniqueEvent,
+        rating: 0);
+    RegisterController().addEventToUserEvents(event, context);
   }
 
   void _openDrawer() {
@@ -65,7 +111,7 @@ class _AddEventHomeState extends State<AddEventHome> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CTBTextField(
-                      controller: eventNameController,
+                      controller: TextEditingController(),
                       hintText: "TOCAI & BUBU",
                       icon: Icons.edit,
                       textAlign: TextAlign.start,
@@ -74,25 +120,43 @@ class _AddEventHomeState extends State<AddEventHome> {
                       height: 20,
                     ),
                     EventDateTimePickerRow(
-                      dateController: TextEditingController(),
-                      timeController: TextEditingController(),
+                      dateController: eventDateController,
+                      timeController: eventTimeController,
                     ),
                     const SizedBox(
                       height: 10,
                     ),
-                    const Row(
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        EventDay(),
-                        Category(),
+                        EventDay(
+                          onSelectionChanged: (selectedDate, selectedDay,
+                              isEventoUnicoSelected) {
+                            print('Selected Date: $selectedDate');
+                            print('Selected Day: $selectedDay');
+                            print(
+                                'Is Evento Unico Selected: $isEventoUnicoSelected');
+                            dateFinalAt = selectedDate;
+                            eventDay = selectedDay.toString();
+                            isUniqueEvent = isEventoUnicoSelected;
+                          },
+                        ),
+                        Category(
+                          onCategoryChanged: (selectedCategory, selectedColor) {
+                            print('Selected Category: $selectedCategory');
+                            print('Selected Color: $selectedColor');
+                            category = selectedCategory;
+                            categoryColor = selectedColor.value.toString();
+                          },
+                        ),
                       ],
                     ),
                     const SizedBox(
                       height: 16,
                     ),
                     DCTBTextField(
-                      controller: TextEditingController(),
+                      controller: eventNameController,
                       hintText: "(max 50 caratteri)",
                       letter: "T",
                       textAlign: TextAlign.start,
@@ -103,7 +167,7 @@ class _AddEventHomeState extends State<AddEventHome> {
                       height: 16,
                     ),
                     DCTBTextField(
-                      controller: TextEditingController(),
+                      controller: descriptionController,
                       hintText: "(max 200 caratteri)",
                       letter: "P",
                       textAlign: TextAlign.start,
@@ -113,7 +177,11 @@ class _AddEventHomeState extends State<AddEventHome> {
                     const SizedBox(
                       height: 16,
                     ),
-                    ImagePickerComponent(),
+                    ImagePickerComponent(
+                      onImagePicked: (base64Value) {
+                        imageController.text = base64Value;
+                      },
+                    ),
                     Row(
                       children: [
                         Expanded(
@@ -138,7 +206,9 @@ class _AddEventHomeState extends State<AddEventHome> {
                       text: 'Pubblica',
                       textColor: Colors.white,
                       backgroundColor: const Color(0xff298D17),
-                      onPressed: () {},
+                      onPressed: () {
+                        addEvent();
+                      },
                     ),
                   ],
                 ),

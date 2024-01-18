@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:uperitivo/Tutorial/tutorial_screen.dart';
+import 'package:uperitivo/Utils/helpers.dart';
 
 class DrawerScreen extends StatelessWidget {
   const DrawerScreen({
@@ -44,7 +46,9 @@ class DrawerScreen extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                 ),
-                onTap: () {},
+                onTap: () {
+                  getScreen(context, () => TutorialScreen());
+                },
               ),
               const Divider(),
               ListTile(

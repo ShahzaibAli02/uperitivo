@@ -7,18 +7,18 @@ import 'package:uperitivo/Screens/Components/header.dart';
 import 'package:uperitivo/Screens/Home/event_card.dart';
 import 'package:uperitivo/Utils/helpers.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class EventsScreen extends StatelessWidget {
+  EventsScreen({super.key});
+  GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
+
+  void _openDrawer() {
+    _scaffoldKey.currentState?.openEndDrawer();
+  }
 
   @override
   Widget build(BuildContext context) {
     UserModel? user = getCurrentUser(context);
-    List<EventModel>? events = getAllEventsList(context);
-    GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
-
-    void _openDrawer() {
-      _scaffoldKey.currentState?.openEndDrawer();
-    }
+    List<EventModel>? events = getCurrentUserEventsList(context);
 
     return Scaffold(
       key: _scaffoldKey,

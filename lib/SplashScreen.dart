@@ -34,10 +34,12 @@ class SplashScreen extends StatelessWidget {
                 onPressed: () async {
                   RegisterController registerController = RegisterController();
                   UserModel? user = await registerController.getSignedInUser();
-                  print(user?.email);
+
                   if (user != null) {
                     if (context.mounted) {
                       updateCurrentUser(user, context);
+                      await registerController
+                          .getAllEventsForCompanies(context);
                     }
                     if (context.mounted) {
                       getScreen(context, () => const BottomNavigation(),

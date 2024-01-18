@@ -116,7 +116,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           if (email.isNotEmpty && password.isNotEmpty) {
                             UserModel? user = await registerController
                                 .signInWithEmailAndPassword(email, password);
+
                             if (user != null) {
+                              if (context.mounted) {
+                                updateCurrentUser(user, context);
+                                await registerController
+                                    .getAllEventsForCompanies(context);
+                              }
                               if (mounted) {
                                 getScreen(
                                     context, () => const BottomNavigation(),
