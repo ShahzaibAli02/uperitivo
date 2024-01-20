@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uperitivo/Controller/user_firebase_controller.dart';
 import 'package:uperitivo/Models/event_model.dart';
+import 'package:uperitivo/Models/user_model.dart';
 import 'package:uperitivo/Screens/AddEvent/event_category.dart';
 import 'package:uperitivo/Screens/AddEvent/event_day.dart';
 import 'package:uperitivo/Screens/AddEvent/image_picker.dart';
@@ -36,6 +37,8 @@ class _AddEventHomeState extends State<AddEventHome> {
   String dateFinalAt = "";
   String category = "";
   String categoryColor = "";
+  UserModel? user;
+  bool isAddingEvent = false;
 
   @override
   void initState() {
@@ -45,9 +48,33 @@ class _AddEventHomeState extends State<AddEventHome> {
     eventDateController = TextEditingController();
     eventTimeController = TextEditingController();
     imageController = TextEditingController();
+
+    user = getCurrentUser(context);
+    print(user!.name);
+    setState(() {});
+  }
+
+  void resetControllers() {
+    eventNameController.text = '';
+    descriptionController.text = '';
+    eventDateController.text = '';
+    eventTimeController.text = '';
+    ueventDateController.text = '';
+    ueventTimeController.text = '';
+    imageController.text = '';
+    eventDate = '';
+    eventTime = '';
+    isUniqueEvent = false;
+    eventDay = '';
+    dateFinalAt = '';
+    category = '';
+    categoryColor = '';
   }
 
   void addEvent() {
+    setState(() {
+      isAddingEvent = true;
+    });
     String eventName = eventNameController.text;
     String eventDescription = descriptionController.text;
     String image = imageController.text;
@@ -55,22 +82,31 @@ class _AddEventHomeState extends State<AddEventHome> {
     String eventTime = eventTimeController.text;
     var uuid = const Uuid();
     String eventId = uuid.v4();
+
     EventModel event = EventModel(
-        eventId: eventId,
-        eventName: eventName,
-        eventDescription: eventDescription,
-        eventDate: eventDate,
-        eventTime: eventTime,
-        eventType: isUniqueEvent ? "special" : "recurring",
-        category: category,
-        categoryColor: categoryColor,
-        image: image,
-        participants: [],
-        untilDate: dateFinalAt,
-        day: eventDay,
-        recurring: !isUniqueEvent,
-        rating: 0);
+      eventId: eventId,
+      eventName: eventName,
+      eventDescription: eventDescription,
+      eventDate: eventDate,
+      eventTime: eventTime,
+      eventType: isUniqueEvent ? "special" : "recurring",
+      category: category,
+      categoryColor: categoryColor,
+      image: image,
+      participants: [],
+      untilDate: dateFinalAt,
+      day: eventDay,
+      recurring: !isUniqueEvent,
+      rating: 0,
+      companyName: user!.name,
+      address: user!.address,
+      longitude: user!.longitude,
+      latitude: user!.latitude,
+    );
     RegisterController().addEventToUserEvents(event, context);
+    setState(() {
+      isAddingEvent = false;
+    });
   }
 
   void _openDrawer() {
@@ -112,9 +148,10 @@ class _AddEventHomeState extends State<AddEventHome> {
                   children: [
                     CTBTextField(
                       controller: TextEditingController(),
-                      hintText: "TOCAI & BUBU",
+                      hintText: user!.cmpName,
                       icon: Icons.edit,
                       textAlign: TextAlign.start,
+                      readOnly: true,
                     ),
                     const SizedBox(
                       height: 20,
@@ -188,7 +225,9 @@ class _AddEventHomeState extends State<AddEventHome> {
                           child: CustomOutlinedButton(
                             text: 'Resetta',
                             textColor: Colors.red,
-                            onPressed: () {},
+                            onPressed: () {
+                              resetControllers();
+                            },
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -196,19 +235,23 @@ class _AddEventHomeState extends State<AddEventHome> {
                           child: CustomOutlinedButton(
                             text: 'Esci',
                             textColor: const Color(0xFF7E84A3),
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 16),
                     CustomOutlinedButton(
-                      text: 'Pubblica',
+                      text: isAddingEvent ? 'Pubblicazione...' : 'Pubblica',
                       textColor: Colors.white,
                       backgroundColor: const Color(0xff298D17),
-                      onPressed: () {
-                        addEvent();
-                      },
+                      onPressed: isAddingEvent
+                          ? null
+                          : () {
+                              addEvent();
+                            },
                     ),
                   ],
                 ),

@@ -80,7 +80,7 @@ UserModel? getCurrentUser(BuildContext context) {
   return userProvider.currentUser;
 }
 
-List<EventModel>? getAllEventsList(BuildContext context) {
+List<EventModel> getAllEventsList(BuildContext context) {
   final userProvider = Provider.of<UserProvider>(context, listen: false);
   return userProvider.getAllCompanyEvents();
 }

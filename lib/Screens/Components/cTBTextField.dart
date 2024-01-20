@@ -5,6 +5,7 @@ class CTBTextField extends StatelessWidget {
   final String hintText;
   final TextAlign textAlign;
   final IconData? icon;
+  final bool readOnly;
 
   const CTBTextField({
     Key? key,
@@ -12,6 +13,7 @@ class CTBTextField extends StatelessWidget {
     required this.hintText,
     this.textAlign = TextAlign.center,
     this.icon,
+    this.readOnly = false,
   }) : super(key: key);
 
   @override
@@ -19,6 +21,7 @@ class CTBTextField extends StatelessWidget {
     return TextField(
       textAlign: textAlign,
       controller: controller,
+      readOnly: readOnly,
       decoration: InputDecoration(
         contentPadding: const EdgeInsets.symmetric(
           vertical: 15.0,

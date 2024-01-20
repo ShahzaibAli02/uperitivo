@@ -17,24 +17,31 @@ class UserModel {
   final String cf;
   final String image;
   String userType;
+  final String address;
+  final double longitude;
+  final double latitude;
   List<EventModel>? events;
 
-  UserModel(
-      {required this.uid,
-      required this.nickname,
-      required this.name,
-      required this.cmpName,
-      required this.typeOfActivity,
-      required this.surname,
-      required this.via,
-      required this.civico,
-      required this.city,
-      required this.province,
-      required this.mobile,
-      required this.email,
-      required this.site,
-      required this.cf,
-      required this.image,
-      required this.userType,
-      this.events});
+  UserModel({
+    required this.uid,
+    required this.nickname,
+    required this.name,
+    required this.cmpName,
+    required this.typeOfActivity,
+    required this.surname,
+    required this.via,
+    required this.civico,
+    required this.city,
+    required this.province,
+    required this.mobile,
+    required this.email,
+    required this.site,
+    required this.cf,
+    required this.image,
+    required this.userType,
+    required this.address,
+    required this.longitude,
+    required this.latitude,
+    this.events,
+  });
 }

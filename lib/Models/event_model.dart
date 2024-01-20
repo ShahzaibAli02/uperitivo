@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 class EventModel {
   final String eventId;
   final String eventName;
@@ -15,6 +13,10 @@ class EventModel {
   final String day;
   final bool recurring;
   final int rating;
+  final String companyName; // Added company name
+  final String address; // Added address
+  final double longitude; // Added longitude
+  final double latitude; // Added latitude
 
   EventModel({
     required this.eventId,
@@ -31,6 +33,10 @@ class EventModel {
     required this.day,
     required this.recurring,
     required this.rating,
+    required this.companyName,
+    required this.address,
+    required this.longitude,
+    required this.latitude,
   });
 
   Map<String, dynamic> toJson() {
@@ -49,6 +55,10 @@ class EventModel {
       'day': day,
       'recurring': recurring,
       'rating': rating,
+      'companyName': companyName,
+      'address': address,
+      'longitude': longitude,
+      'latitude': latitude,
     };
   }
 
@@ -68,6 +78,10 @@ class EventModel {
       day: json['day'],
       recurring: json['recurring'],
       rating: json['rating'],
+      companyName: json['companyName'],
+      address: json['address'],
+      longitude: json['longitude'],
+      latitude: json['latitude'],
     );
   }
 }

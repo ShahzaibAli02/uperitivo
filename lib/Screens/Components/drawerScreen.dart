@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:uperitivo/Controller/user_firebase_controller.dart';
+import 'package:uperitivo/SplashScreen.dart';
 import 'package:uperitivo/Tutorial/tutorial_screen.dart';
 import 'package:uperitivo/Utils/helpers.dart';
 
@@ -68,7 +70,12 @@ class DrawerScreen extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                 ),
-                onTap: () {},
+                onTap: () async {
+                  await RegisterController().signOut(context);
+                  if (context.mounted) {
+                    getScreen(context, () => SplashScreen());
+                  }
+                },
               ),
             ],
           ),

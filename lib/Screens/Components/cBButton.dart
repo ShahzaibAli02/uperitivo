@@ -4,7 +4,7 @@ class CustomOutlinedButton extends StatelessWidget {
   final String text;
   final Color textColor;
   final Color backgroundColor;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   const CustomOutlinedButton({
     Key? key,

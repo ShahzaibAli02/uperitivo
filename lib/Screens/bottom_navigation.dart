@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:uperitivo/Controller/user_firebase_controller.dart';
 import 'package:uperitivo/Events/events_screen.dart';
 import 'package:uperitivo/Screens/Home/home.dart';
+import 'package:uperitivo/Screens/Location/locationScreen.dart';
+import 'package:uperitivo/Screens/Participants/participants_section.dart';
 import 'package:uperitivo/SplashScreen.dart';
 import 'package:uperitivo/Utils/helpers.dart';
 
@@ -61,28 +63,6 @@ class _BottomNavigationState extends State<BottomNavigation> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class ParticipantsScreen extends StatelessWidget {
-  const ParticipantsScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Participants Screen'),
-    );
-  }
-}
-
-class LocationScreen extends StatelessWidget {
-  const LocationScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Location Screen'),
     );
   }
 }

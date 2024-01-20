@@ -8,7 +8,7 @@ import 'package:uperitivo/Screens/Home/event_card.dart';
 import 'package:uperitivo/Utils/helpers.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({Key? key});
 
   @override
   Widget build(BuildContext context) {
@@ -32,17 +32,25 @@ class HomeScreen extends StatelessWidget {
             },
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: events!.length,
-              itemBuilder: (context, index) {
-                EventModel event = events[index];
-                return SizedBox(
-                  height: 450, // Set your desired fixed height for the cards
-                  child:
-                      EventCard(event), // Assuming you have an EventCard widget
-                );
-              },
-            ),
+            child: events != null && events.isNotEmpty
+                ? ListView.builder(
+                    itemCount: events.length,
+                    itemBuilder: (context, index) {
+                      EventModel event = events[index];
+                      return SizedBox(
+                        height:
+                            450, // Set your desired fixed height for the cards
+                        child: EventCard(
+                            event), // Assuming you have an EventCard widget
+                      );
+                    },
+                  )
+                : const Center(
+                    child: Text(
+                      'No events to show',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                  ),
           ),
         ],
       ),

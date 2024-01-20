@@ -35,6 +35,9 @@ class RegisterController {
         'cf': user.cf,
         'image': user.image,
         'userType': user.userType,
+        'address': user.address,
+        'longitude': user.longitude,
+        'latitude': user.latitude,
         'events': []
       });
 
@@ -89,6 +92,9 @@ class RegisterController {
         cf: userDoc['cf'],
         image: userDoc['image'],
         userType: userDoc['userType'],
+        address: userDoc['address'] ?? "",
+        longitude: userDoc['longitude'] + 0.0 ?? 0.0,
+        latitude: userDoc['latitude'] + 0.0 ?? 0.0,
         events: eventsList,
       );
     } catch (e) {
@@ -133,6 +139,9 @@ class RegisterController {
           cf: userDoc['cf'],
           image: userDoc['image'],
           userType: userDoc['userType'],
+          address: userDoc['address'] ?? "",
+          longitude: userDoc['longitude'] + 0.0 ?? 0.0,
+          latitude: userDoc['latitude'] + 0.0 ?? 0.0,
           events: eventsList,
         );
       }
@@ -228,33 +237,24 @@ class RegisterController {
     List<String> participants = [];
 
     try {
-      // Get all users
       QuerySnapshot usersSnapshot = await _firestore.collection('users').get();
 
-      // Loop through each user
       for (QueryDocumentSnapshot userDoc in usersSnapshot.docs) {
-        // Get the 'events' field from the user document
         List<dynamic>? userEvents = userDoc['events'];
 
         if (userEvents != null) {
-          // Loop through each event in the user's 'events' list
           for (int i = 0; i < userEvents.length; i++) {
-            // Check if the 'eventId' matches the target event
             if (userEvents[i]['eventId'] == eventId) {
-              // Add the current user's ID to the 'participants' list
               participants = List<String>.from(userEvents[i]['participants']);
 
               participants.add(currentUser!.uid);
 
-              // Update the 'participants' list in the event map
               userEvents[i]['participants'] = participants;
 
-              // Update the user's document in Firestore
               await _firestore.collection('users').doc(userDoc.id).update({
                 'events': userEvents,
               });
 
-              // Break the loop as we found and updated the event for this user
               break;
             }
           }
@@ -266,7 +266,6 @@ class RegisterController {
           'Added user to event participants for all users successfully');
       return participants;
     } catch (e) {
-      // Handle errors
       showErrorSnackBar(context, 'Error adding user to event participants: $e');
       return participants;
     }
@@ -287,15 +286,11 @@ class RegisterController {
     try {
       List<UserModel> users = [];
 
-      // Loop through each user ID
       for (String userId in userIds) {
-        // Get the user document from Firestore
         DocumentSnapshot userDoc =
             await _firestore.collection('users').doc(userId).get();
 
-        // Check if the user document exists
         if (userDoc.exists) {
-          // Extract user data and convert it to UserModel
           UserModel user = UserModel(
             uid: userDoc.id,
             nickname: userDoc['nickname'],
@@ -313,7 +308,10 @@ class RegisterController {
             cf: userDoc['cf'],
             image: userDoc['image'],
             userType: userDoc['userType'],
-            events: [], // You might want to fetch events as well if needed
+            address: userDoc['address'] ?? "",
+            longitude: userDoc['longitude'] + 0.0 ?? 0.0,
+            latitude: userDoc['latitude'] + 0.0 ?? 0.0,
+            events: [],
           );
 
           users.add(user);
@@ -322,7 +320,6 @@ class RegisterController {
 
       return users;
     } catch (e) {
-      // Handle errors
       print('Error getting users by IDs: $e');
       return [];
     }

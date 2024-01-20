@@ -20,6 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
   late TextEditingController usernameController;
   late TextEditingController passwordController;
+  bool isLoggingIn = false;
 
   @override
   void initState() {
@@ -108,36 +109,48 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () async {
-                          RegisterController registerController =
-                              RegisterController();
-                          String email = usernameController.text;
-                          String password = passwordController.text;
-                          if (email.isNotEmpty && password.isNotEmpty) {
-                            UserModel? user = await registerController
-                                .signInWithEmailAndPassword(email, password);
+                        onPressed: isLoggingIn
+                            ? null
+                            : () async {
+                                setState(() {
+                                  isLoggingIn = true;
+                                });
 
-                            if (user != null) {
-                              if (context.mounted) {
-                                updateCurrentUser(user, context);
-                                await registerController
-                                    .getAllEventsForCompanies(context);
-                              }
-                              if (mounted) {
-                                getScreen(
-                                    context, () => const BottomNavigation(),
-                                    removePreviousScreens: true);
-                              }
-                            } else {
-                              if (mounted) {
-                                showErrorSnackBar(
-                                    context, "Invalid username or password");
-                              }
-                            }
-                          } else {
-                            showErrorSnackBar(context, "Fill both fields");
-                          }
-                        },
+                                RegisterController registerController =
+                                    RegisterController();
+                                String email = usernameController.text;
+                                String password = passwordController.text;
+                                if (email.isNotEmpty && password.isNotEmpty) {
+                                  UserModel? user = await registerController
+                                      .signInWithEmailAndPassword(
+                                          email, password);
+
+                                  if (user != null) {
+                                    if (context.mounted) {
+                                      updateCurrentUser(user, context);
+                                      await registerController
+                                          .getAllEventsForCompanies(context);
+                                    }
+                                    if (mounted) {
+                                      getScreen(context,
+                                          () => const BottomNavigation(),
+                                          removePreviousScreens: true);
+                                    }
+                                  } else {
+                                    if (mounted) {
+                                      showErrorSnackBar(context,
+                                          "Invalid username or password");
+                                    }
+                                  }
+                                } else {
+                                  showErrorSnackBar(
+                                      context, "Fill both fields");
+                                }
+
+                                setState(() {
+                                  isLoggingIn = false;
+                                });
+                              },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF5887DC),
                           foregroundColor: Colors.white,
@@ -145,15 +158,20 @@ class _LoginScreenState extends State<LoginScreen> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
                             vertical: 12,
                             horizontal: 24,
                           ),
-                          child: Text(
-                            'ACCEDI',
-                            style: TextStyle(fontSize: 16),
-                          ),
+                          child: isLoggingIn
+                              ? const CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
+                                )
+                              : const Text(
+                                  'ACCEDI',
+                                  style: TextStyle(fontSize: 16),
+                                ),
                         ),
                       ),
                     ),

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:uperitivo/Controller/user_firebase_controller.dart';
 import 'package:uperitivo/Models/user_model.dart';
 import 'package:uperitivo/Screens/AddEvent/image_picker.dart';
 import 'package:uperitivo/Screens/Components/cBButton.dart';
 import 'package:uperitivo/Screens/Components/drawerScreen.dart';
 import 'package:uperitivo/Screens/Components/footer.dart';
+import 'package:uperitivo/Screens/Components/get_location.dart';
 import 'package:uperitivo/Screens/Components/header.dart';
 import 'package:uperitivo/Utils/helpers.dart';
 import 'package:uuid/uuid.dart';
@@ -18,6 +22,19 @@ class RegisterMain extends StatefulWidget {
 
 class _RegisterMainState extends State<RegisterMain> {
   GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
+  GoogleMapController? _mapController;
+  Position _currentPosition = Position(
+      longitude: 0.0,
+      latitude: 0.0,
+      timestamp: DateTime.now(),
+      accuracy: 0.0,
+      altitude: 0.0,
+      altitudeAccuracy: 0.0,
+      heading: 0.0,
+      headingAccuracy: 0.0,
+      speed: 0.0,
+      speedAccuracy: 0.0);
+  String _currentAddress = "";
 
   void _openDrawer() {
     _scaffoldKey.currentState?.openEndDrawer();
@@ -62,6 +79,46 @@ class _RegisterMainState extends State<RegisterMain> {
     imageController = TextEditingController();
     passwordController = TextEditingController();
     confirmPasswordController = TextEditingController();
+    _getUserLocation();
+  }
+
+  void _getUserLocation() async {
+    LocationPermission permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.whileInUse ||
+        permission == LocationPermission.always) {
+      try {
+        Position position = await Geolocator.getCurrentPosition();
+        setState(() {
+          _currentPosition = position;
+        });
+        _getAddressFromCoordinates(position.latitude, position.longitude);
+      } catch (e) {
+        print('Error: $e');
+      }
+    } else {
+      print('Location permission denied.');
+    }
+  }
+
+  void _getAddressFromCoordinates(double latitude, double longitude) async {
+    try {
+      List<Placemark> placemarks =
+          await placemarkFromCoordinates(latitude, longitude);
+      if (placemarks.isNotEmpty) {
+        Placemark placemark = placemarks[0];
+        String address = placemark.street ?? '';
+        String city = placemark.locality ?? '';
+        String state = placemark.administrativeArea ?? '';
+        String country = placemark.country ?? '';
+
+        setState(() {
+          _currentAddress = '$address, $city, $state, $country';
+        });
+        print(_currentAddress);
+      }
+    } catch (e) {
+      print('Error getting address: $e');
+    }
   }
 
   @override
@@ -81,6 +138,25 @@ class _RegisterMainState extends State<RegisterMain> {
     passwordController.dispose();
     confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  void resetControllers() {
+    nicknameController.text = '';
+    nameController.text = '';
+    cmpNameController.text = '';
+    typeOfActivityController.text = '';
+    surnameController.text = '';
+    viaController.text = '';
+    civicoController.text = '';
+    cityController.text = '';
+    provinceController.text = '';
+    mobileController.text = '';
+    emailController.text = '';
+    siteController.text = '';
+    cfController.text = '';
+    imageController.text = '';
+    passwordController.text = '';
+    confirmPasswordController.text = '';
   }
 
   Future<void> registerUser() async {
@@ -105,23 +181,25 @@ class _RegisterMainState extends State<RegisterMain> {
     var uuid = const Uuid();
     var v4 = uuid.v4();
     UserModel user = UserModel(
-      uid: v4,
-      nickname: nickname,
-      name: name,
-      cmpName: cmpName,
-      typeOfActivity: typeOfActivity,
-      surname: surname,
-      via: via,
-      civico: civico,
-      city: city,
-      province: province,
-      mobile: mobile,
-      email: email,
-      site: site,
-      cf: cf,
-      image: image,
-      userType: "userType",
-    );
+        uid: v4,
+        nickname: nickname,
+        name: name,
+        cmpName: cmpName,
+        typeOfActivity: typeOfActivity,
+        surname: surname,
+        via: via,
+        civico: civico,
+        city: city,
+        province: province,
+        mobile: mobile,
+        email: email,
+        site: site,
+        cf: cf,
+        image: image,
+        userType: "userType",
+        address: _currentAddress,
+        longitude: _currentPosition.longitude,
+        latitude: _currentPosition.latitude);
 
     if (firstButtonClicked) {
       if (nickname.isNotEmpty &&
@@ -412,15 +490,17 @@ class _RegisterMainState extends State<RegisterMain> {
                             controller: cfController,
                           ),
                         const SizedBox(height: 16),
-                        if (secondButtonClicked)
+                        if (firstButtonClicked || secondButtonClicked)
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Padding(
-                                padding: EdgeInsets.all(8.0),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
                                 child: Text(
-                                  "Default Image",
-                                  style: TextStyle(
+                                  firstButtonClicked
+                                      ? "Profile image"
+                                      : "Default Image",
+                                  style: const TextStyle(
                                     color: Color(0xFF7E84A3),
                                   ),
                                 ),
@@ -433,7 +513,6 @@ class _RegisterMainState extends State<RegisterMain> {
                             ],
                           ),
                         const SizedBox(height: 16),
-                        // Buttons
                         if (firstButtonClicked || secondButtonClicked)
                           CustomOutlinedButton(
                             text: 'Salva',
@@ -451,7 +530,9 @@ class _RegisterMainState extends State<RegisterMain> {
                                 child: CustomOutlinedButton(
                                   text: 'Cancella il tuo profilo',
                                   textColor: Colors.red,
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    resetControllers();
+                                  },
                                 ),
                               ),
                               const SizedBox(width: 16),
@@ -459,7 +540,9 @@ class _RegisterMainState extends State<RegisterMain> {
                                 child: CustomOutlinedButton(
                                   text: 'Esci',
                                   textColor: const Color(0xFF354052),
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
                                 ),
                               ),
                             ],
