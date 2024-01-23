@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:uperitivo/Controller/user_firebase_controller.dart';
 import 'package:uperitivo/Models/user_model.dart';
 import 'package:uperitivo/Screens/Components/cTBTextField.dart';
-import 'package:uperitivo/Screens/Components/drawerScreen.dart';
+import 'package:uperitivo/Screens/Components/drawer_screen.dart';
 import 'package:uperitivo/Screens/Components/footer.dart';
 import 'package:uperitivo/Screens/Components/header.dart';
 import 'package:uperitivo/Screens/bottom_navigation.dart';
@@ -118,7 +118,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
                                 RegisterController registerController =
                                     RegisterController();
-                                String email = usernameController.text;
+                                String email = usernameController.text
+                                    .trim()
+                                    .toLowerCase();
                                 String password = passwordController.text;
                                 if (email.isNotEmpty && password.isNotEmpty) {
                                   UserModel? user = await registerController

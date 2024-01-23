@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ImagePickerComponent extends StatefulWidget {
-  final Function(String)? onImagePicked;
+  final Function(XFile)? onImagePicked;
   const ImagePickerComponent({Key? key, this.onImagePicked}) : super(key: key);
 
   @override
@@ -14,7 +14,7 @@ class ImagePickerComponent extends StatefulWidget {
 }
 
 class _ImagePickerComponentState extends State<ImagePickerComponent> {
-  String? base64Image;
+  XFile? image;
   final ImagePicker imagePicker = ImagePicker();
 
   @override
@@ -40,9 +40,9 @@ class _ImagePickerComponentState extends State<ImagePickerComponent> {
               dashPattern: const [5, 5],
               child: SizedBox.expand(
                 child: FittedBox(
-                  child: base64Image != null
-                      ? Image.memory(
-                          base64.decode(base64Image!),
+                  child: (image != null)
+                      ? Image.file(
+                          File(image!.path),
                           fit: BoxFit.cover,
                         )
                       : const Icon(
@@ -99,12 +99,16 @@ class _ImagePickerComponentState extends State<ImagePickerComponent> {
       maxWidth: 1800,
       maxHeight: 1800,
     );
+    print(pickedFile);
     if (pickedFile != null) {
-      await convertToBase64(pickedFile);
+      // await convertToBase64(pickedFile);
       if (widget.onImagePicked != null) {
-        widget.onImagePicked!(base64Image!);
+        widget.onImagePicked!(pickedFile!);
       }
     }
+    setState(() {
+      image = pickedFile;
+    });
   }
 
   Future<void> getFromCamera() async {
@@ -113,19 +117,15 @@ class _ImagePickerComponentState extends State<ImagePickerComponent> {
       maxWidth: 1800,
       maxHeight: 1800,
     );
+    print(pickedFile);
     if (pickedFile != null) {
-      await convertToBase64(pickedFile);
+      // await convertToBase64(pickedFile);
       if (widget.onImagePicked != null) {
-        widget.onImagePicked!(base64Image!);
+        widget.onImagePicked!(pickedFile!);
       }
     }
-  }
-
-  Future<void> convertToBase64(XFile pickedFile) async {
-    List<int> imageBytes = await pickedFile.readAsBytes();
-    String imageBase64 = base64Encode(imageBytes);
     setState(() {
-      base64Image = imageBase64;
+      image = pickedFile;
     });
   }
 }

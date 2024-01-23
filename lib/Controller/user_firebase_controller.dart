@@ -185,6 +185,7 @@ class RegisterController {
             updateCurrentUser(user, context);
           }
         }
+        await getAllEventsForCompanies(context);
         if (context.mounted) {
           showSuccessSnackBar(context, "Event added to user's events");
         }
@@ -197,6 +198,7 @@ class RegisterController {
     } catch (e) {
       if (context.mounted) {
         showErrorSnackBar(context, 'Error adding event to user\'s events: $e');
+        print('Error adding event to user\'s events: $e');
       }
       rethrow;
     }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:uperitivo/Screens/Components/drawerScreen.dart';
+import 'package:uperitivo/Screens/Components/drawer_screen.dart';
 import 'package:uperitivo/Screens/Components/header.dart';
 
 class TutorialScreen extends StatelessWidget {

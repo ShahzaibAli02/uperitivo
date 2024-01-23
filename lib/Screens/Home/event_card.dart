@@ -1,50 +1,68 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:uperitivo/Models/event_model.dart';
 import 'package:uperitivo/Screens/Home/event_detail_screen.dart';
 import 'package:uperitivo/Screens/Home/event_participants.dart';
 import 'package:uperitivo/Utils/helpers.dart';
 
-class EventCard extends StatelessWidget {
+class EventCard extends StatefulWidget {
   final EventModel event;
 
-  const EventCard(this.event, {super.key});
+  const EventCard({super.key, required this.event});
+
+  @override
+  _EventCardState createState() => _EventCardState();
+}
+
+class _EventCardState extends State<EventCard>
+    with AutomaticKeepAliveClientMixin {
+  DecorationImage getImageDecoration(EventModel event) {
+    if (event.image.startsWith("http")) {
+      return DecorationImage(
+        fit: BoxFit.fill,
+        image: NetworkImage(event.image),
+      );
+    } else {
+      return DecorationImage(
+        fit: BoxFit.fill,
+        image: MemoryImage(
+          event.image.isNotEmpty ? base64Decode(event.image) : Uint8List(0),
+        ),
+      );
+    }
+  }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Card(
       margin: const EdgeInsets.all(8.0),
       shape: RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.circular(15.0), // Set your desired corner radius
+        borderRadius: BorderRadius.circular(15.0),
       ),
       child: InkWell(
         onTap: () {
-          getScreen(context, () => EventDetailScreen(event: event));
+          getScreen(context, () => EventDetailScreen(event: widget.event));
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image Container (60%)
             Expanded(
               flex: 6,
               child: Stack(
                 children: [
                   Container(
                     decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(12.0)),
-                      image: DecorationImage(
-                        fit: BoxFit.fill,
-                        image: MemoryImage(
-                          event.image != null
-                              ? base64Decode(event.image)
-                              : Uint8List(0),
-                        ),
-                      ),
-                    ),
+                        borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(12.0)),
+                        image: DecorationImage(
+                            image: NetworkImage(widget.event.image),
+                            fit: BoxFit.cover)),
                   ),
                   Positioned(
                     top: 0,
@@ -53,7 +71,7 @@ class EventCard extends StatelessWidget {
                         width: 49,
                         height: 42,
                         child: Image.asset(
-                            "assets/images/${isEventOpen(event.eventType, event.untilDate, event.eventDate) ? "open_badge" : "close_badge"}.png")),
+                            "assets/images/${isEventOpen(widget.event.eventType, widget.event.eventTime, widget.event.untilDate, widget.event.eventDate) ? "open_badge" : "close_badge"}.png")),
                   ),
                   Positioned(
                     bottom: 0,
@@ -62,14 +80,14 @@ class EventCard extends StatelessWidget {
                       width: 105,
                       height: 28,
                       decoration: BoxDecoration(
-                          color:
-                              Color(int.parse(event.categoryColor.toString())),
-                          borderRadius:
-                              BorderRadius.only(topLeft: Radius.circular(16))),
+                          color: Color(
+                              int.parse(widget.event.categoryColor.toString())),
+                          borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(16))),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          SizedBox(
+                          const SizedBox(
                             width: 5,
                           ),
                           const Icon(
@@ -79,8 +97,7 @@ class EventCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            event
-                                .eventTime, // Replace with your actual time value
+                            widget.event.eventTime,
                             style: const TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,
@@ -93,7 +110,6 @@ class EventCard extends StatelessWidget {
                 ],
               ),
             ),
-            // Details Container (40%)
             Expanded(
               flex: 4,
               child: Stack(
@@ -101,7 +117,7 @@ class EventCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8.0),
                     decoration: BoxDecoration(
-                      color: event.eventType == "special"
+                      color: widget.event.eventType == "special"
                           ? const Color(0xffD9C301)
                           : Colors.white,
                       borderRadius: const BorderRadius.vertical(
@@ -112,12 +128,12 @@ class EventCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          event.eventName,
+                          widget.event.eventName,
                           style: const TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 20),
                         ),
                         Text(
-                          event.eventDescription,
+                          widget.event.eventDescription,
                           style: const TextStyle(fontSize: 18),
                         ),
                         Container(
@@ -129,7 +145,7 @@ class EventCard extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              formatItalianDate(event.eventDate),
+                              formatItalianDate(widget.event.eventDate),
                               style: const TextStyle(fontSize: 20),
                             ),
                             const Text(
@@ -140,14 +156,14 @@ class EventCard extends StatelessWidget {
                               onTap: () {
                                 getScreen(
                                     context,
-                                    () =>
-                                        EventParticipantsScreen(event: event));
+                                    () => EventParticipantsScreen(
+                                        event: widget.event));
                               },
                               child: Row(
                                 children: [
                                   Icon(
                                     Icons.people,
-                                    color: event.eventType != "special"
+                                    color: widget.event.eventType != "special"
                                         ? const Color(0xffA0A0A0)
                                         : Colors.white,
                                   ),
@@ -155,7 +171,7 @@ class EventCard extends StatelessWidget {
                                     width: 5,
                                   ),
                                   Text(
-                                    "${event.participants.length}",
+                                    "${widget.event.participants.length}",
                                     style: const TextStyle(fontSize: 20),
                                   ),
                                 ],
@@ -170,7 +186,7 @@ class EventCard extends StatelessWidget {
                               child: Text(
                                 'Partecipa !',
                                 style: TextStyle(
-                                    color: event.eventType != "special"
+                                    color: widget.event.eventType != "special"
                                         ? const Color(0xffEC6500)
                                         : Colors.white,
                                     fontSize: 20),
@@ -197,7 +213,7 @@ class EventCard extends StatelessWidget {
                           ...List.generate(
                             5,
                             (index) => Icon(
-                              index < event.rating.floor()
+                              index < widget.event.rating.floor()
                                   ? Icons.star
                                   : Icons.star_border,
                               color: Colors.white,
@@ -216,38 +232,6 @@ class EventCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget buildTimeRating() {
-    return Container(
-      width: 150,
-      height: 70,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.black),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          // First Row: Clock icon and Time value
-
-          // Second Row: Rating Stars
-          Container(
-            color: const Color(0xff4D4D4D),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                5,
-                (index) => Icon(
-                  index < event.rating.floor() ? Icons.star : Icons.star_border,
-                  color: Colors.yellow,
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

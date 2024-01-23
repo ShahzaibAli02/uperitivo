@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:uperitivo/Controller/user_firebase_controller.dart';
+import 'package:uperitivo/Models/user_model.dart';
+import 'package:uperitivo/Screens/UserAccount/login.dart';
+import 'package:uperitivo/Screens/bottom_navigation.dart';
 import 'package:uperitivo/SplashScreen.dart';
 import 'package:uperitivo/Tutorial/tutorial_screen.dart';
 import 'package:uperitivo/Utils/helpers.dart';
@@ -11,6 +14,7 @@ class DrawerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    UserModel? user = getCurrentUser(context);
     return SizedBox(
       width: MediaQuery.of(context).size.width * 1,
       child: Drawer(
@@ -31,16 +35,22 @@ class DrawerScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              ListTile(
-                title: const Center(
-                  child: Text(
-                    'Visualizza tutti gli eventi',
-                    textAlign: TextAlign.center,
+              if (user != null)
+                ListTile(
+                  title: const Center(
+                    child: Text(
+                      'Visualizza tutti gli eventi',
+                      textAlign: TextAlign.center,
+                    ),
                   ),
+                  onTap: () {
+                    if (context.mounted) {
+                      getScreen(context, () => const BottomNavigation(),
+                          removePreviousScreens: true);
+                    }
+                  },
                 ),
-                onTap: () {},
-              ),
-              const Divider(),
+              if (user != null) const Divider(),
               ListTile(
                 title: const Center(
                   child: Text(
@@ -49,7 +59,8 @@ class DrawerScreen extends StatelessWidget {
                   ),
                 ),
                 onTap: () {
-                  getScreen(context, () => TutorialScreen());
+                  getScreen(context, () => TutorialScreen(),
+                      removePreviousScreens: true);
                 },
               ),
               const Divider(),
@@ -60,23 +71,30 @@ class DrawerScreen extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                 ),
-                onTap: () {},
-              ),
-              const Divider(),
-              ListTile(
-                title: const Center(
-                  child: Text(
-                    'LOGOUT',
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                onTap: () async {
-                  await RegisterController().signOut(context);
+                onTap: () {
                   if (context.mounted) {
-                    getScreen(context, () => SplashScreen());
+                    getScreen(context, () => const LoginScreen(),
+                        removePreviousScreens: true);
                   }
                 },
               ),
+              const Divider(),
+              if (user != null)
+                ListTile(
+                  title: const Center(
+                    child: Text(
+                      'LOGOUT',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  onTap: () async {
+                    await RegisterController().signOut(context);
+                    if (context.mounted) {
+                      getScreen(context, () => SplashScreen(),
+                          removePreviousScreens: true);
+                    }
+                  },
+                ),
             ],
           ),
         ),

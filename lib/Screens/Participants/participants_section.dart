@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uperitivo/Controller/user_firebase_controller.dart';
 import 'package:uperitivo/Models/event_model.dart';
 import 'package:uperitivo/Models/user_model.dart';
-import 'package:uperitivo/Screens/Components/drawerScreen.dart';
+import 'package:uperitivo/Screens/Components/drawer_screen.dart';
 import 'package:uperitivo/Screens/Components/header.dart';
 import 'package:uperitivo/Utils/helpers.dart';
 
@@ -16,9 +16,14 @@ class ParticipantsScreen extends StatefulWidget {
 class _ParticipantsScreenState extends State<ParticipantsScreen> {
   GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
   bool _isUserInEvent = false;
+
   List<UserModel> _participantsList = [];
+  bool isGettingUsers = false;
   EventModel? selectedEvent;
   List<EventModel>? events;
+  bool isCheckingUserStatus = false;
+  bool joinRequest = false;
+  UserModel? user;
 
   void _openDrawer() {
     _scaffoldKey.currentState?.openEndDrawer();
@@ -27,7 +32,7 @@ class _ParticipantsScreenState extends State<ParticipantsScreen> {
   @override
   void initState() {
     super.initState();
-    UserModel? user = getCurrentUser(context);
+    user = getCurrentUser(context);
     List<EventModel>? eventList = getAllEventsList(context);
     setState(() {
       events = eventList;
@@ -38,32 +43,44 @@ class _ParticipantsScreenState extends State<ParticipantsScreen> {
   }
 
   Future<void> checkIfUserInEvent() async {
+    setState(() {
+      isCheckingUserStatus = true;
+    });
     bool isUserInEvent =
         await RegisterController().isUserInEventParticipants(selectedEvent!);
     if (mounted) {
       setState(() {
         _isUserInEvent = isUserInEvent;
+        isCheckingUserStatus = false;
       });
     }
   }
 
   Future<void> getUsersByIds(List<String> userIds) async {
+    setState(() {
+      isGettingUsers = true;
+    });
     List<UserModel> participantsList =
         await RegisterController().getUsersByIds(userIds);
     if (mounted) {
       setState(() {
         _participantsList = participantsList;
+        isGettingUsers = false;
       });
     }
   }
 
   Future<void> joinEvent() async {
+    setState(() {
+      joinRequest = true;
+    });
     List<String> res =
         await RegisterController().joinEvent(selectedEvent!.eventId, context);
     if (mounted && res.length - 1 == selectedEvent!.participants.length) {
       setState(() {
         _isUserInEvent = true;
         selectedEvent!.participants = res;
+        joinRequest = false;
       });
       getUsersByIds(selectedEvent!.participants);
     }
@@ -115,9 +132,9 @@ class _ParticipantsScreenState extends State<ParticipantsScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
-                                "TOCAI & BUBU",
-                                style: TextStyle(
+                              Text(
+                                selectedEvent!.companyName,
+                                style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 20,
                                     color: Color(0xff354052)),
@@ -158,6 +175,17 @@ class _ParticipantsScreenState extends State<ParticipantsScreen> {
                             ],
                           ),
                           const SizedBox(height: 16),
+                          if (_participantsList.isEmpty && !isGettingUsers)
+                            const Column(
+                              children: [
+                                SizedBox(
+                                  height: 100,
+                                ),
+                                Center(
+                                  child: Text("No Participants for this event"),
+                                ),
+                              ],
+                            ),
                           ListView.builder(
                             shrinkWrap: true,
                             itemCount: _participantsList.length,
@@ -165,9 +193,9 @@ class _ParticipantsScreenState extends State<ParticipantsScreen> {
                               return Column(
                                 children: [
                                   ListTile(
-                                    leading: const CircleAvatar(
+                                    leading: CircleAvatar(
                                       backgroundImage: NetworkImage(
-                                          "https://img.freepik.com/free-photo/portrait-white-man-isolated_53876-40306.jpg?size=626&ext=jpg&ga=GA1.1.329329622.1688323921&semt=ais"),
+                                          _participantsList[index].image),
                                     ),
                                     title: Text(
                                       "${_participantsList[index].nickname} ${_participantsList[index].name}",
@@ -180,30 +208,46 @@ class _ParticipantsScreenState extends State<ParticipantsScreen> {
                               );
                             },
                           ),
-                          Container(
-                            width: double.infinity,
-                            margin: const EdgeInsets.symmetric(horizontal: 20),
-                            child: ElevatedButton(
-                              onPressed: _isUserInEvent ? null : joinEvent,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                  _isUserInEvent ? 'C6 !' : 'Partecipa',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                    color: Colors.white,
+                          if (user!.userType != "company")
+                            Container(
+                              width: double.infinity,
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 20),
+                              child: ElevatedButton(
+                                onPressed: _isUserInEvent ||
+                                        isCheckingUserStatus ||
+                                        !isEventOpen(
+                                            selectedEvent!.eventType,
+                                            selectedEvent!.eventTime,
+                                            selectedEvent!.untilDate,
+                                            selectedEvent!.eventDate)
+                                    ? null
+                                    : joinEvent,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10.0),
                                   ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: joinRequest || isCheckingUserStatus
+                                      ? const Center(
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : Text(
+                                          _isUserInEvent ? 'C6 !' : 'Partecipa',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            color: Colors.white,
+                                          ),
+                                        ),
                                 ),
                               ),
                             ),
-                          ),
                         ],
                       )
                     else

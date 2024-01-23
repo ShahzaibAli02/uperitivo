@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/material.dart';
 import 'package:uperitivo/Controller/user_firebase_controller.dart';
 import 'package:uperitivo/Models/event_model.dart';
@@ -7,10 +10,11 @@ import 'package:uperitivo/Screens/AddEvent/event_day.dart';
 import 'package:uperitivo/Screens/AddEvent/image_picker.dart';
 import 'package:uperitivo/Screens/Components/cBButton.dart';
 import 'package:uperitivo/Screens/Components/cTBTextField.dart';
-import 'package:uperitivo/Screens/Components/drawerScreen.dart';
+import 'package:uperitivo/Screens/Components/drawer_screen.dart';
 import 'package:uperitivo/Screens/Components/eventDatePickerRow.dart';
 import 'package:uperitivo/Screens/Components/footer.dart';
 import 'package:uperitivo/Screens/Components/header.dart';
+import 'package:uperitivo/SplashScreen.dart';
 import 'package:uperitivo/Utils/helpers.dart';
 import 'package:uuid/uuid.dart';
 
@@ -27,9 +31,9 @@ class _AddEventHomeState extends State<AddEventHome> {
   late TextEditingController descriptionController;
   late TextEditingController eventDateController;
   late TextEditingController eventTimeController;
-  late TextEditingController ueventDateController;
-  late TextEditingController ueventTimeController;
-  late TextEditingController imageController;
+  // late TextEditingController ueventDateController;
+  // late TextEditingController ueventTimeController;
+  // late TextEditingController imageController;
   String eventDate = "";
   String eventTime = "";
   bool isUniqueEvent = false;
@@ -39,6 +43,7 @@ class _AddEventHomeState extends State<AddEventHome> {
   String categoryColor = "";
   UserModel? user;
   bool isAddingEvent = false;
+  File? pickedImage;
 
   @override
   void initState() {
@@ -47,7 +52,7 @@ class _AddEventHomeState extends State<AddEventHome> {
     descriptionController = TextEditingController();
     eventDateController = TextEditingController();
     eventTimeController = TextEditingController();
-    imageController = TextEditingController();
+    // imageController = TextEditingController();
 
     user = getCurrentUser(context);
     print(user!.name);
@@ -57,11 +62,11 @@ class _AddEventHomeState extends State<AddEventHome> {
   void resetControllers() {
     eventNameController.text = '';
     descriptionController.text = '';
-    eventDateController.text = '';
-    eventTimeController.text = '';
-    ueventDateController.text = '';
-    ueventTimeController.text = '';
-    imageController.text = '';
+    // eventDateController.text = '';
+    // eventTimeController.text = '';
+    // ueventDateController.text = '';
+    // ueventTimeController.text = '';
+    // imageController.text = '';
     eventDate = '';
     eventTime = '';
     isUniqueEvent = false;
@@ -69,44 +74,113 @@ class _AddEventHomeState extends State<AddEventHome> {
     dateFinalAt = '';
     category = '';
     categoryColor = '';
+    pickedImage = null;
   }
 
-  void addEvent() {
-    setState(() {
-      isAddingEvent = true;
-    });
-    String eventName = eventNameController.text;
-    String eventDescription = descriptionController.text;
-    String image = imageController.text;
-    String eventDate = eventDateController.text;
-    String eventTime = eventTimeController.text;
-    var uuid = const Uuid();
-    String eventId = uuid.v4();
+  Future<void> addEvent() async {
+    if (user != null) {
+      setState(() {
+        isAddingEvent = true;
+      });
 
-    EventModel event = EventModel(
-      eventId: eventId,
-      eventName: eventName,
-      eventDescription: eventDescription,
-      eventDate: eventDate,
-      eventTime: eventTime,
-      eventType: isUniqueEvent ? "special" : "recurring",
-      category: category,
-      categoryColor: categoryColor,
-      image: image,
-      participants: [],
-      untilDate: dateFinalAt,
-      day: eventDay,
-      recurring: !isUniqueEvent,
-      rating: 0,
-      companyName: user!.name,
-      address: user!.address,
-      longitude: user!.longitude,
-      latitude: user!.latitude,
-    );
-    RegisterController().addEventToUserEvents(event, context);
-    setState(() {
-      isAddingEvent = false;
-    });
+      String eventName = eventNameController.text.trim();
+      String eventDescription = descriptionController.text.trim();
+      String eventDate = eventDateController.text;
+      String eventTime = eventTimeController.text;
+
+      if (eventName.isEmpty ||
+          eventDescription.isEmpty ||
+          eventDate.isEmpty ||
+          eventTime.isEmpty ||
+          category.isEmpty ||
+          categoryColor.isEmpty) {
+        showErrorSnackBar(context, "Fill all fields");
+        setState(() {
+          isAddingEvent = false;
+        });
+        return;
+      }
+
+      if (!isUniqueEvent) {
+        if (dateFinalAt.isEmpty) {
+          showErrorSnackBar(context, "Select fino al(compresso)");
+          setState(() {
+            isAddingEvent = false;
+          });
+          return;
+        }
+        if (dateFinalAt == eventDate) {
+          showErrorSnackBar(
+              context, "Select different fino al(compresso) from event date");
+          setState(() {
+            isAddingEvent = false;
+          });
+          return;
+        }
+      }
+
+      if (!isEventDateTimeValid(eventDate, eventTime)) {
+        showErrorSnackBar(context,
+            "Selected date and time have already passed. Please choose a future date and time.");
+        setState(() {
+          isAddingEvent = false;
+        });
+        return;
+      }
+
+      String image =
+          'https://firebasestorage.googleapis.com/v0/b/uperitivo-b5e06.appspot.com/o/event_images%2Fplaceholder_register_image.png?alt=media&token=d2a7a5ea-536d-4da7-a29c-a5f2bf717460';
+
+      if (pickedImage != null) {
+        String imagePath = 'event_images/${Uuid().v4()}';
+        await firebase_storage.FirebaseStorage.instance
+            .ref(imagePath)
+            .putFile(pickedImage!);
+
+        image = await firebase_storage.FirebaseStorage.instance
+            .ref(imagePath)
+            .getDownloadURL();
+      }
+
+      var uuid = const Uuid();
+      String eventId = uuid.v4();
+
+      EventModel event = EventModel(
+        eventId: eventId,
+        companyId: user!.uid,
+        eventName: eventName,
+        eventDescription: eventDescription,
+        eventDate: eventDate,
+        eventTime: eventTime,
+        eventType: isUniqueEvent ? "special" : "recurring",
+        category: category,
+        categoryColor: categoryColor,
+        image: image,
+        participants: [],
+        untilDate: dateFinalAt,
+        day: eventDay,
+        recurring: !isUniqueEvent,
+        rating: 0,
+        companyName: user!.cmpName,
+        address: user!.address,
+        longitude: user!.longitude,
+        latitude: user!.latitude,
+      );
+
+      if (mounted) {
+        await RegisterController().addEventToUserEvents(event, context);
+      }
+
+      setState(() {
+        isAddingEvent = false;
+      });
+    } else {
+      showErrorSnackBar(context, "user not exists");
+      await RegisterController().signOut(context);
+      if (context.mounted) {
+        getScreen(context, () => SplashScreen());
+      }
+    }
   }
 
   void _openDrawer() {
@@ -215,8 +289,10 @@ class _AddEventHomeState extends State<AddEventHome> {
                       height: 16,
                     ),
                     ImagePickerComponent(
-                      onImagePicked: (base64Value) {
-                        imageController.text = base64Value;
+                      onImagePicked: (image) {
+                        setState(() {
+                          pickedImage = File(image.path);
+                        });
                       },
                     ),
                     Row(
@@ -247,11 +323,9 @@ class _AddEventHomeState extends State<AddEventHome> {
                       text: isAddingEvent ? 'Pubblicazione...' : 'Pubblica',
                       textColor: Colors.white,
                       backgroundColor: const Color(0xff298D17),
-                      onPressed: isAddingEvent
-                          ? null
-                          : () {
-                              addEvent();
-                            },
+                      onPressed: () {
+                        addEvent();
+                      },
                     ),
                   ],
                 ),

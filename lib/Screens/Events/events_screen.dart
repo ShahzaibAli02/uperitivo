@@ -10,14 +10,14 @@ import 'package:uperitivo/Screens/Components/header.dart';
 import 'package:uperitivo/Screens/Home/event_card.dart';
 import 'package:uperitivo/Utils/helpers.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+class EventsScreen extends StatefulWidget {
+  const EventsScreen({Key? key}) : super(key: key);
 
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  _EventsScreenState createState() => _EventsScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _EventsScreenState extends State<EventsScreen> {
   UserModel? user;
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
   String? _selectedValue = null;
@@ -162,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: Consumer<UserProvider>(
               builder: (context, userProvider, child) {
-                List<EventModel> events = userProvider.getAllCompanyEvents();
+                List<EventModel> events = userProvider.getcurrentUserEvents();
 
                 if (_selectedValue == "recurring") {
                   events = events

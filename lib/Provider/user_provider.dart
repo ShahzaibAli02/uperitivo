@@ -31,16 +31,22 @@ class UserProvider extends ChangeNotifier {
   }
 
   List<EventModel> getcurrentUserEvents() {
-    List<EventModel> currentUserEvents = [];
+    List<EventModel> allCompanyEvents = [];
 
     _companyEventsMap.forEach((companyId, eventsList) {
-      for (EventModel event in eventsList) {
-        if (event.participants.contains(_currentUser!.uid)) {
-          currentUserEvents.add(event);
-        }
+      if (_currentUser!.uid == companyId &&
+          _currentUser!.userType == "company") {
+        allCompanyEvents.addAll(eventsList);
+      }
+      if (_currentUser!.userType == "person") {
+        eventsList.forEach((event) {
+          if (event.participants.contains(_currentUser!.uid)) {
+            allCompanyEvents.add(event);
+          }
+        });
       }
     });
 
-    return currentUserEvents;
+    return allCompanyEvents;
   }
 }

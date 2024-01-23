@@ -1,5 +1,6 @@
 class EventModel {
   final String eventId;
+  final String companyId;
   final String eventName;
   final String eventDescription;
   final String eventDate;
@@ -13,13 +14,14 @@ class EventModel {
   final String day;
   final bool recurring;
   final int rating;
-  final String companyName; // Added company name
-  final String address; // Added address
-  final double longitude; // Added longitude
-  final double latitude; // Added latitude
+  final String companyName;
+  final String address;
+  final double longitude;
+  final double latitude;
 
   EventModel({
     required this.eventId,
+    required this.companyId,
     required this.eventName,
     required this.eventDescription,
     required this.eventDate,
@@ -42,6 +44,7 @@ class EventModel {
   Map<String, dynamic> toJson() {
     return {
       'eventId': eventId,
+      'companyId': companyId,
       'eventName': eventName,
       'eventDescription': eventDescription,
       'eventDate': eventDate,
@@ -65,6 +68,7 @@ class EventModel {
   factory EventModel.fromJson(Map<String, dynamic> json) {
     return EventModel(
       eventId: json['eventId'],
+      companyId: json['companyId'],
       eventName: json['eventName'],
       eventDescription: json['eventDescription'],
       eventDate: json['eventDate'],

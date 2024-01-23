@@ -3,24 +3,25 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:uperitivo/Controller/user_firebase_controller.dart';
 import 'package:uperitivo/Models/event_model.dart';
 import 'package:uperitivo/Models/user_model.dart';
-import 'package:uperitivo/Screens/Components/drawerScreen.dart';
+import 'package:uperitivo/Screens/Components/drawer_screen.dart';
 import 'package:uperitivo/Screens/Components/header.dart';
 import 'package:uperitivo/Utils/helpers.dart';
 
 class LocationScreen extends StatefulWidget {
-  const LocationScreen({super.key});
+  const LocationScreen({Key? key});
 
   @override
   _LocationScreenState createState() => _LocationScreenState();
 }
 
 class _LocationScreenState extends State<LocationScreen> {
-  GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
   bool _isUserInEvent = false;
   List<UserModel> _participantsList = [];
   EventModel? selectedEvent;
   List<EventModel>? events;
   GoogleMapController? _mapController;
+  UserModel? user;
 
   void _openDrawer() {
     _scaffoldKey.currentState?.openEndDrawer();
@@ -29,19 +30,33 @@ class _LocationScreenState extends State<LocationScreen> {
   @override
   void initState() {
     super.initState();
-    UserModel? user = getCurrentUser(context);
-    List<EventModel>? eventList = getAllEventsList(context);
-    setState(() {
-      events = eventList;
-      selectedEvent = events?.isNotEmpty == true ? events![0] : null;
-      checkIfUserInEvent();
-      getUsersByIds(selectedEvent?.participants ?? []);
-    });
+    user = getCurrentUser(context);
+    _loadEvents();
   }
 
-  Future<void> checkIfUserInEvent() async {
+  Future<void> _loadEvents() async {
+    List<EventModel>? eventList = getAllEventsList(context);
+
+    if (mounted) {
+      setState(() {
+        events = eventList;
+        selectedEvent = events?.isNotEmpty == true ? events![0] : null;
+        if (selectedEvent != null) {
+          _updateSelectedEvent(selectedEvent!);
+        }
+      });
+    }
+  }
+
+  Future<void> _updateSelectedEvent(EventModel event) async {
+    await checkIfUserInEvent(event);
+    await getUsersByIds(event.participants);
+  }
+
+  Future<void> checkIfUserInEvent(EventModel event) async {
     bool isUserInEvent =
-        await RegisterController().isUserInEventParticipants(selectedEvent!);
+        await RegisterController().isUserInEventParticipants(event);
+
     if (mounted) {
       setState(() {
         _isUserInEvent = isUserInEvent;
@@ -52,6 +67,7 @@ class _LocationScreenState extends State<LocationScreen> {
   Future<void> getUsersByIds(List<String> userIds) async {
     List<UserModel> participantsList =
         await RegisterController().getUsersByIds(userIds);
+
     if (mounted) {
       setState(() {
         _participantsList = participantsList;
@@ -59,15 +75,17 @@ class _LocationScreenState extends State<LocationScreen> {
     }
   }
 
-  Future<void> joinEvent() async {
+  Future<void> joinEvent(EventModel event) async {
     List<String> res =
-        await RegisterController().joinEvent(selectedEvent!.eventId, context);
-    if (mounted && res.length - 1 == selectedEvent!.participants.length) {
+        await RegisterController().joinEvent(event.eventId, context);
+
+    if (mounted && res.length - 1 == event.participants.length) {
       setState(() {
         _isUserInEvent = true;
-        selectedEvent!.participants = res;
+        event.participants = res;
       });
-      getUsersByIds(selectedEvent!.participants);
+
+      await getUsersByIds(event.participants);
     }
   }
 
@@ -84,112 +102,111 @@ class _LocationScreenState extends State<LocationScreen> {
               _openDrawer();
             },
           ),
-          selectedEvent != null
-              ? Container(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          if (selectedEvent != null)
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DropdownButton<EventModel>(
+                    value: selectedEvent,
+                    onChanged: (EventModel? newValue) {
+                      if (newValue != null) {
+                        setState(() {
+                          selectedEvent = newValue;
+                          _updateSelectedEvent(newValue);
+                        });
+                      }
+                    },
+                    items: events?.map<DropdownMenuItem<EventModel>>(
+                          (EventModel event) {
+                            return DropdownMenuItem<EventModel>(
+                              value: event,
+                              child: Text(event.eventName),
+                            );
+                          },
+                        ).toList() ??
+                        [],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      if (events != null && events!.isNotEmpty)
-                        Column(
-                          children: [
-                            DropdownButton<EventModel>(
-                              value: selectedEvent,
-                              onChanged: (EventModel? newValue) {
-                                setState(() {
-                                  selectedEvent = newValue;
-                                  checkIfUserInEvent();
-                                  getUsersByIds(
-                                      selectedEvent?.participants ?? []);
-                                });
-                              },
-                              items: events!.map<DropdownMenuItem<EventModel>>(
-                                (EventModel event) {
-                                  return DropdownMenuItem<EventModel>(
-                                    value: event,
-                                    child: Text(event.eventName),
-                                  );
-                                },
-                              ).toList(),
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  "TOCAI & BUBU",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 20,
-                                      color: Color(0xff354052)),
-                                ),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.people),
-                                    const SizedBox(width: 5),
-                                    Text(
-                                      "${selectedEvent!.participants.length}",
-                                      style: const TextStyle(fontSize: 20),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Text(
-                                  selectedEvent!.category,
-                                  style: const TextStyle(
-                                      color: Color(0xff354052), fontSize: 18),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Text(
-                                  selectedEvent!.eventName,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 30,
-                                      color: Color(0xff354052)),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                          ],
-                        )
-                      else
-                        const Text('No events available'),
+                      const Text(
+                        "TOCAI & BUBU",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            color: Color(0xff354052)),
+                      ),
+                      Row(
+                        children: [
+                          const Icon(Icons.people),
+                          const SizedBox(width: 5),
+                          Text(
+                            "${selectedEvent!.participants.length}",
+                            style: const TextStyle(fontSize: 20),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
-                )
-              : const Center(child: CircularProgressIndicator()),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        selectedEvent!.category,
+                        style: const TextStyle(
+                            color: Color(0xff354052), fontSize: 18),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        selectedEvent!.eventName,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 30,
+                            color: Color(0xff354052)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          // // else if (events != null && events!.isEmpty)
+          // //   const Center(
+          // //     child: Text('No event found'),
+          // //   )
+          // else
+          //   const Center(child: CircularProgressIndicator()),
           Expanded(
-            child: selectedEvent!.address.isNotEmpty
+            child: selectedEvent?.address.isNotEmpty == true
                 ? GoogleMap(
                     initialCameraPosition: CameraPosition(
                       target: LatLng(
-                        selectedEvent!.latitude,
-                        selectedEvent!.longitude,
+                        user!.latitude,
+                        user!.longitude,
                       ),
                       zoom: 15,
                     ),
                     onMapCreated: (GoogleMapController controller) {
                       _mapController = controller;
                     },
-                    // markers: Set<Marker>.from(_markers),
                     onTap: (LatLng location) {
-                      // setState(() {
-                      //   _selectedPharmacyName = null;
-                      // });
+                      // Handle map tap
                     },
                     myLocationEnabled: true,
                     myLocationButtonEnabled: true,
                   )
-                : const Center(child: CircularProgressIndicator()),
+                : Center(
+                    child: (events != null && events!.isEmpty)
+                        ? const Text('No event found')
+                        : const CircularProgressIndicator()),
           ),
         ],
       ),

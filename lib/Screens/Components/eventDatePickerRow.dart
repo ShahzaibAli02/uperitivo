@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uperitivo/Utils/helpers.dart';
 
 class EventDateTimePickerRow extends StatelessWidget {
   final TextEditingController dateController;
@@ -44,7 +45,7 @@ class EventDateTimePickerRow extends StatelessWidget {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
+      firstDate: DateTime.now(),
       lastDate: DateTime(2101),
       builder: (BuildContext context, Widget? child) {
         return Theme(
@@ -84,14 +85,6 @@ class EventDateTimePickerRow extends StatelessWidget {
     if (pickedTime != null) {
       timeController.text = formatTime(pickedTime);
     }
-  }
-
-  String formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-  }
-
-  String formatTime(TimeOfDay time) {
-    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 }
 

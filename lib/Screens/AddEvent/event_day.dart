@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uperitivo/Utils/helpers.dart';
 
 class EventDay extends StatefulWidget {
   final Function(
@@ -75,7 +76,7 @@ class _EventDayState extends State<EventDay> {
                   final DateTime? pickedDate = await showDatePicker(
                     context: context,
                     initialDate: DateTime.now(),
-                    firstDate: DateTime(2000),
+                    firstDate: DateTime.now(),
                     lastDate: DateTime(2101),
                     builder: (BuildContext context, Widget? child) {
                       return Theme(
@@ -93,8 +94,7 @@ class _EventDayState extends State<EventDay> {
 
                   if (pickedDate != null) {
                     setState(() {
-                      selectedDate =
-                          "${pickedDate.day}/${pickedDate.month}/${pickedDate.year}";
+                      selectedDate = formatDate(pickedDate);
                     });
                     widget.onSelectionChanged(
                         selectedDate, selectedDay, isEventoUnicoSelected);

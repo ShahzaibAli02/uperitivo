@@ -27,10 +27,19 @@ class Header extends StatelessWidget {
         children: [
           InkWell(
             onTap: onIconTap,
-            child: Image.asset(
-              'assets/images/info.png',
-              width: 22,
-              height: 22,
+            child: Ink(
+              decoration: BoxDecoration(
+                borderRadius:
+                    BorderRadius.circular(10.0), // Adjust the value as needed
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Image.asset(
+                  'assets/images/info.png',
+                  width: 22,
+                  height: 22,
+                ),
+              ),
             ),
           ),
           Image.asset(
@@ -40,10 +49,18 @@ class Header extends StatelessWidget {
           ),
           InkWell(
             onTap: onDrawerTap,
-            child: Image.asset(
-              'assets/images/drawer.png',
-              width: 24,
-              height: 22,
+            child: Ink(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Image.asset(
+                  'assets/images/drawer.png',
+                  width: 24,
+                  height: 22,
+                ),
+              ),
             ),
           ),
         ],

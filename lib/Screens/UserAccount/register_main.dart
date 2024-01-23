@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -6,9 +8,9 @@ import 'package:uperitivo/Controller/user_firebase_controller.dart';
 import 'package:uperitivo/Models/user_model.dart';
 import 'package:uperitivo/Screens/AddEvent/image_picker.dart';
 import 'package:uperitivo/Screens/Components/cBButton.dart';
-import 'package:uperitivo/Screens/Components/drawerScreen.dart';
+import 'package:uperitivo/Screens/Components/drawer_screen.dart';
 import 'package:uperitivo/Screens/Components/footer.dart';
-import 'package:uperitivo/Screens/Components/get_location.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:uperitivo/Screens/Components/header.dart';
 import 'package:uperitivo/Utils/helpers.dart';
 import 'package:uuid/uuid.dart';
@@ -59,6 +61,7 @@ class _RegisterMainState extends State<RegisterMain> {
   late TextEditingController imageController;
   late TextEditingController passwordController;
   late TextEditingController confirmPasswordController;
+  File? pickedImage;
 
   @override
   void initState() {
@@ -157,30 +160,85 @@ class _RegisterMainState extends State<RegisterMain> {
     imageController.text = '';
     passwordController.text = '';
     confirmPasswordController.text = '';
+    pickedImage = null;
   }
 
   Future<void> registerUser() async {
-    String nickname = nicknameController.text;
-    String name = nameController.text;
-    String cmpName = cmpNameController.text;
-    String typeOfActivity = typeOfActivityController.text;
-    String surname = surnameController.text;
-    String via = viaController.text;
-    String civico = civicoController.text;
-    String city = cityController.text;
-    String province = provinceController.text;
-    String mobile = mobileController.text;
-    String email = emailController.text;
-    String site = siteController.text;
-    String cf = cfController.text;
-    String image = imageController.text;
+    String nickname = nicknameController.text.trim();
+    String name = nameController.text.trim();
+    String cmpName = cmpNameController.text.trim();
+    String typeOfActivity = typeOfActivityController.text.trim();
+    String surname = surnameController.text.trim();
+    String via = viaController.text.trim();
+    String civico = civicoController.text.trim();
+    String city = cityController.text.trim();
+    String province = provinceController.text.trim();
+    String mobile = mobileController.text.trim();
+    String email = emailController.text.trim();
+    String site = siteController.text.trim();
+    String cf = cfController.text.trim();
     String password = passwordController.text;
     String confirmPassword = confirmPasswordController.text;
+    String image = 'to be upload';
 
-    RegisterController registerController = RegisterController();
-    var uuid = const Uuid();
-    var v4 = uuid.v4();
-    UserModel user = UserModel(
+    List<String> requiredFields = [];
+
+    if (firstButtonClicked) {
+      requiredFields = [
+        nickname,
+        name,
+        surname,
+        via,
+        civico,
+        city,
+        province,
+        mobile,
+        email,
+        password,
+        confirmPassword,
+        image
+      ];
+    } else if (secondButtonClicked) {
+      requiredFields = [
+        cmpName,
+        via,
+        civico,
+        city,
+        province,
+        mobile,
+        email,
+        password,
+        confirmPassword,
+        image,
+      ];
+    }
+    if (password != confirmPassword) {
+      if (mounted) {
+        showErrorSnackBar(context, "Password, Confirm Password not matched!");
+      }
+      return;
+    }
+    if (validateInputs(requiredFields) && isValidEmail(email)) {
+      if (pickedImage != null) {
+        String imagePath = 'users_images/${Uuid().v4()}';
+        await firebase_storage.FirebaseStorage.instance
+            .ref(imagePath)
+            .putFile(pickedImage!);
+
+        image = await firebase_storage.FirebaseStorage.instance
+            .ref(imagePath)
+            .getDownloadURL();
+      } else {
+        if (mounted) {
+          showErrorSnackBar(context, "Failed,Error while uploading image...");
+        }
+        return;
+      }
+
+      RegisterController registerController = RegisterController();
+      var uuid = const Uuid();
+      var v4 = uuid.v4();
+      UserModel user = UserModel(
         uid: v4,
         nickname: nickname,
         name: name,
@@ -199,50 +257,35 @@ class _RegisterMainState extends State<RegisterMain> {
         userType: "userType",
         address: _currentAddress,
         longitude: _currentPosition.longitude,
-        latitude: _currentPosition.latitude);
+        latitude: _currentPosition.latitude,
+      );
 
-    if (firstButtonClicked) {
-      if (nickname.isNotEmpty &&
-          name.isNotEmpty &&
-          surname.isNotEmpty &&
-          via.isNotEmpty &&
-          civico.isNotEmpty &&
-          city.isNotEmpty &&
-          province.isNotEmpty &&
-          mobile.isNotEmpty &&
-          email.isNotEmpty &&
-          password.isNotEmpty &&
-          confirmPassword.isNotEmpty) {
-        if (password != confirmPassword) {
-          showErrorSnackBar(context, "Password,Confirm Password not matched!");
-        } else {
-          user.userType = "person";
-          await registerController.registerUser(user, password, context);
-        }
-      } else {
-        showErrorSnackBar(context, "fill all required* fields");
+      user.userType = firstButtonClicked ? "person" : "company";
+      if (mounted) {
+        await registerController.registerUser(user, password, context);
       }
-    } else if (secondButtonClicked) {
-      if (cmpName.isNotEmpty &&
-          via.isNotEmpty &&
-          civico.isNotEmpty &&
-          city.isNotEmpty &&
-          province.isNotEmpty &&
-          mobile.isNotEmpty &&
-          email.isNotEmpty &&
-          password.isNotEmpty &&
-          confirmPassword.isNotEmpty &&
-          image.isNotEmpty) {
-        if (password != confirmPassword) {
-          showErrorSnackBar(context, "Password,Confirm Password not matched!");
-        } else {
-          user.userType = "company";
-          await registerController.registerUser(user, password, context);
-        }
-      } else {
-        showErrorSnackBar(context, "fill all required* fields");
+    } else {
+      if (mounted) {
+        showErrorSnackBar(
+            context, "Fill all required* fields or enter a valid email");
       }
     }
+  }
+
+  bool isValidEmail(String email) {
+    RegExp emailRegExp = RegExp(
+      r"^[a-zA-Z0-9.!#$%&\'*+\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$",
+    );
+    return emailRegExp.hasMatch(email);
+  }
+
+  bool validateInputs(List<String> fields) {
+    for (String field in fields) {
+      if (field.isEmpty) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @override
@@ -506,8 +549,8 @@ class _RegisterMainState extends State<RegisterMain> {
                                 ),
                               ),
                               ImagePickerComponent(
-                                onImagePicked: (base64Value) {
-                                  imageController.text = base64Value;
+                                onImagePicked: (image) {
+                                  pickedImage = File(image.path);
                                 },
                               ),
                             ],

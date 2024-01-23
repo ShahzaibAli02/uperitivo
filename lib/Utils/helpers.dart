@@ -5,6 +5,28 @@ import 'package:uperitivo/Models/user_model.dart';
 import 'package:uperitivo/Provider/user_provider.dart';
 import 'package:intl/intl.dart';
 
+import 'dart:math';
+
+double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+  const double earthRadius = 6371; // Earth's radius in kilometers
+
+  double radians(double degree) {
+    return degree * (pi / 180.0);
+  }
+
+  double dLat = radians(lat2 - lat1);
+  double dLon = radians(lon2 - lon1);
+
+  double a = sin(dLat / 2) * sin(dLat / 2) +
+      cos(radians(lat1)) * cos(radians(lat2)) * sin(dLon / 2) * sin(dLon / 2);
+
+  double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+  double distance = earthRadius * c;
+
+  return distance;
+}
+
 void showSuccessSnackBar(BuildContext context, String message) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
@@ -75,8 +97,8 @@ void updateAllEventsForCompanies(
   userProvider.companyEventsMap = eventsMap;
 }
 
-UserModel? getCurrentUser(BuildContext context) {
-  final userProvider = Provider.of<UserProvider>(context, listen: false);
+UserModel? getCurrentUser(BuildContext? context) {
+  final userProvider = Provider.of<UserProvider>(context!, listen: false);
   return userProvider.currentUser;
 }
 
@@ -127,7 +149,8 @@ String formatItalianDate(String inputDate) {
   return formattedDate;
 }
 
-bool isEventOpen(String eventType, String untilDate, String eventDate) {
+bool isEventOpen(
+    String eventType, String eventTime, String untilDate, String eventDate) {
   String date = "";
 
   if (eventType == "recurring") {
@@ -136,9 +159,34 @@ bool isEventOpen(String eventType, String untilDate, String eventDate) {
     date = eventDate;
   }
 
-  // DateTime eventDateTime = DateFormat("yyyy-MM-dd");
-  // var now = new DateTime.now();
-  // DateTime currentDateTime = DateFormat("yyyy-MM-dd").format(now);
+  return isEventDateTimeValid(date, eventTime);
+}
 
-  return true;
+String formatDate(DateTime date) {
+  return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+}
+
+String formatTime(TimeOfDay time) {
+  return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+}
+
+bool isEventDateTimeValid(String eventDate, String eventTime) {
+  // Parse date string
+  List<String> dateParts = eventDate.split('/');
+  int day = int.parse(dateParts[0]);
+  int month = int.parse(dateParts[1]);
+  int year = int.parse(dateParts[2]);
+
+  List<String> timeParts = eventTime.split(':');
+  int hour = int.parse(timeParts[0]);
+  int minute = int.parse(timeParts[1]);
+
+  DateTime eventDateTime = DateTime(year, month, day, hour, minute);
+  print(eventDateTime);
+  DateTime currentDateTime = DateTime.now();
+  print(currentDateTime);
+  print(eventDateTime.isBefore(currentDateTime) ||
+      eventDateTime.isAtSameMomentAs(currentDateTime));
+  return !(eventDateTime.isBefore(currentDateTime) ||
+      eventDateTime.isAtSameMomentAs(currentDateTime));
 }

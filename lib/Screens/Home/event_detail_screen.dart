@@ -1,10 +1,9 @@
-import 'dart:convert';
-import 'dart:typed_data';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:uperitivo/Controller/user_firebase_controller.dart';
 import 'package:uperitivo/Models/event_model.dart';
-import 'package:uperitivo/Screens/Components/drawerScreen.dart';
+import 'package:uperitivo/Models/user_model.dart';
+import 'package:uperitivo/Screens/Components/drawer_screen.dart';
 import 'package:uperitivo/Screens/Components/header.dart';
 import 'package:uperitivo/Screens/Home/event_participants.dart';
 import 'package:uperitivo/Utils/helpers.dart';
@@ -12,15 +11,18 @@ import 'package:uperitivo/Utils/helpers.dart';
 class EventDetailScreen extends StatefulWidget {
   final EventModel event;
 
-  EventDetailScreen({required this.event});
+  const EventDetailScreen({super.key, required this.event});
 
   @override
-  _EventDetailScreenState createState() => _EventDetailScreenState();
+  State<EventDetailScreen> createState() => _EventDetailScreenState();
 }
 
 class _EventDetailScreenState extends State<EventDetailScreen> {
   GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
   bool _isUserInEvent = false;
+  bool isCheckingUserStatus = false;
+  bool joinRequest = false;
+  UserModel? user;
 
   void _openDrawer() {
     _scaffoldKey.currentState?.openEndDrawer();
@@ -33,23 +35,34 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   }
 
   Future<void> checkIfUserInEvent() async {
+    setState(() {
+      isCheckingUserStatus = true;
+    });
+    user = getCurrentUser(context);
     bool isUserInEvent =
         await RegisterController().isUserInEventParticipants(widget.event);
-    print(isUserInEvent);
+    if (kDebugMode) {
+      print(isUserInEvent);
+    }
     if (mounted) {
       setState(() {
         _isUserInEvent = isUserInEvent;
+        isCheckingUserStatus = false;
       });
     }
   }
 
   Future<void> joinEvent() async {
+    setState(() {
+      joinRequest = true;
+    });
     List<String> res =
         await RegisterController().joinEvent(widget.event.eventId, context);
     if (mounted && res.length - 1 == widget.event.participants.length) {
       setState(() {
         _isUserInEvent = true;
         widget.event.participants = res;
+        joinRequest = false;
       });
     }
   }
@@ -134,13 +147,10 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                   borderRadius: const BorderRadius.vertical(
                                       top: Radius.circular(12.0)),
                                   image: DecorationImage(
-                                    fit: BoxFit.fill,
-                                    image: MemoryImage(
-                                      widget.event.image != null
-                                          ? base64Decode(widget.event.image)
-                                          : Uint8List(0),
-                                    ),
-                                  ),
+                                      image: NetworkImage(
+                                        widget.event.image,
+                                      ),
+                                      fit: BoxFit.cover),
                                 ),
                               ),
                               Positioned(
@@ -150,7 +160,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                   width: 49,
                                   height: 42,
                                   child: Image.asset(
-                                    "assets/images/${isEventOpen(widget.event.eventType, widget.event.untilDate, widget.event.eventDate) ? "open_badge" : "close_badge"}.png",
+                                    "assets/images/${isEventOpen(widget.event.eventType, widget.event.eventTime, widget.event.untilDate, widget.event.eventDate) ? "open_badge" : "close_badge"}.png",
                                   ),
                                 ),
                               ),
@@ -261,30 +271,45 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                     const SizedBox(
                       height: 20,
                     ),
-                    Container(
-                      width: double.infinity,
-                      margin: const EdgeInsets.symmetric(horizontal: 20),
-                      child: ElevatedButton(
-                        onPressed: _isUserInEvent ? null : joinEvent,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            _isUserInEvent ? 'C6 !' : 'Partecipa',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: Colors.white,
+                    if (user!.userType != "company")
+                      Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.symmetric(horizontal: 20),
+                        child: ElevatedButton(
+                          onPressed: _isUserInEvent ||
+                                  isCheckingUserStatus ||
+                                  !isEventOpen(
+                                      widget.event.eventType,
+                                      widget.event.eventTime,
+                                      widget.event.untilDate,
+                                      widget.event.eventDate)
+                              ? null
+                              : joinEvent,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
                             ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: joinRequest
+                                ? const Center(
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : Text(
+                                    _isUserInEvent ? 'C6 !' : 'Partecipa',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                           ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),
