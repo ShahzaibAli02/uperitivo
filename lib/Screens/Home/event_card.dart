@@ -213,7 +213,7 @@ class _EventCardState extends State<EventCard>
                           ...List.generate(
                             5,
                             (index) => Icon(
-                              index < widget.event.rating.floor()
+                              index < widget.event.calRating().floor()
                                   ? Icons.star
                                   : Icons.star_border,
                               color: Colors.white,

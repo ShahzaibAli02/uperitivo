@@ -160,7 +160,7 @@ class _AddEventHomeState extends State<AddEventHome> {
         untilDate: dateFinalAt,
         day: eventDay,
         recurring: !isUniqueEvent,
-        rating: 0,
+        rating: {},
         companyName: user!.cmpName,
         address: user!.address,
         longitude: user!.longitude,

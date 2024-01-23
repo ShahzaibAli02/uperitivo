@@ -513,12 +513,14 @@ class _RegisterMainState extends State<RegisterMain> {
                           CustomTextField(
                             labelText: 'Password*',
                             controller: passwordController,
+                            obscureText: true,
                           ),
                         const SizedBox(height: 16),
                         if (firstButtonClicked || secondButtonClicked)
                           CustomTextField(
                             labelText: 'Confirm Password*',
                             controller: confirmPasswordController,
+                            obscureText: true,
                           ),
                         const SizedBox(height: 16),
                         if (secondButtonClicked)
@@ -608,16 +610,19 @@ class _RegisterMainState extends State<RegisterMain> {
 class CustomTextField extends StatelessWidget {
   final String labelText;
   final TextEditingController controller;
+  final obscureText;
 
   const CustomTextField({
     Key? key,
     required this.labelText,
     required this.controller,
+    this.obscureText = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      obscureText: obscureText,
       controller: controller,
       cursorColor: Colors.black,
       decoration: InputDecoration(

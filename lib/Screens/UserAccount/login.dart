@@ -73,6 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     CTBTextField(
                       hintText: "Password",
                       controller: passwordController,
+                      obscureText: true,
                     ),
                     const SizedBox(height: 20),
                     Text.rich(

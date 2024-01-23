@@ -24,18 +24,31 @@ class TutorialScreen extends StatelessWidget {
             },
           ),
           Expanded(
-            child: SizedBox(
-              width: double.infinity,
-              height: 2449.0,
-              child: Image.asset(
-                "assets/images/tutorial.png",
-                fit: BoxFit.contain,
-              ),
+            child: ListView(
+              children: [
+                buildImage("t1.png"),
+                buildImage("t2.png"),
+                buildImage("t3.png"),
+                Padding(
+                  padding: const EdgeInsets.all(50.0),
+                  child: buildImage("t4.png"),
+                ),
+              ],
             ),
           ),
         ],
       ),
       endDrawer: const DrawerScreen(),
+    );
+  }
+
+  Widget buildImage(String imageName) {
+    return SizedBox(
+      width: double.infinity,
+      child: Image.asset(
+        "assets/images/$imageName",
+        fit: BoxFit.contain,
+      ),
     );
   }
 }

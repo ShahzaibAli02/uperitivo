@@ -13,7 +13,7 @@ class EventModel {
   final String untilDate;
   final String day;
   final bool recurring;
-  final int rating;
+  Map<String, int> rating; // Updated to Map<String, int>
   final String companyName;
   final String address;
   final double longitude;
@@ -57,7 +57,7 @@ class EventModel {
       'untilDate': untilDate,
       'day': day,
       'recurring': recurring,
-      'rating': rating,
+      'rating': rating, // Updated to use Map<String, int>
       'companyName': companyName,
       'address': address,
       'longitude': longitude,
@@ -81,11 +81,31 @@ class EventModel {
       untilDate: json['untilDate'],
       day: json['day'],
       recurring: json['recurring'],
-      rating: json['rating'],
+      rating: Map<String, int>.from(
+          json['rating']), // Updated to use Map<String, int>
       companyName: json['companyName'],
       address: json['address'],
       longitude: json['longitude'],
       latitude: json['latitude'],
     );
+  }
+
+  bool hasUserRated(String userId) {
+    return rating.containsKey(userId);
+  }
+
+  int calRating() {
+    int sum = 0;
+    int count = 0;
+    for (int value in rating.values) {
+      if (value != 0) {
+        sum += value;
+        count++;
+      }
+    }
+    if (count == 0) {
+      return 0;
+    }
+    return (sum / count).floor();
   }
 }

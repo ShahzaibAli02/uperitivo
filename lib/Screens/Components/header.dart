@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:uperitivo/Tutorial/tutorial_screen.dart';
+import 'package:uperitivo/Utils/helpers.dart';
 
 class Header extends StatelessWidget {
   final VoidCallback onIconTap;
@@ -26,7 +28,9 @@ class Header extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           InkWell(
-            onTap: onIconTap,
+            onTap: () {
+              getScreen(context, () => TutorialScreen());
+            },
             child: Ink(
               decoration: BoxDecoration(
                 borderRadius:
@@ -56,7 +60,7 @@ class Header extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Image.asset(
-                  'assets/images/drawer.png',
+                  'assets/images/bars.png',
                   width: 24,
                   height: 22,
                 ),

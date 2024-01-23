@@ -59,8 +59,10 @@ class DrawerScreen extends StatelessWidget {
                   ),
                 ),
                 onTap: () {
-                  getScreen(context, () => TutorialScreen(),
-                      removePreviousScreens: true);
+                  getScreen(
+                    context,
+                    () => TutorialScreen(),
+                  );
                 },
               ),
               const Divider(),

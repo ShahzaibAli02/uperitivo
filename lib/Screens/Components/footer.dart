@@ -14,7 +14,7 @@ class Footer extends StatelessWidget {
             getScreen(context, () => SplashScreen(),
                 removePreviousScreens: true);
           },
-          child: Image.asset("assets/images/home_icon.png"),
+          child: Image.asset("assets/images/home.png"),
         ),
         const Align(
           alignment: Alignment.bottomCenter,

@@ -163,7 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Consumer<UserProvider>(
               builder: (context, userProvider, child) {
                 List<EventModel> events = userProvider.getAllCompanyEvents();
-
+                print(events.length);
                 if (_selectedValue == "recurring") {
                   events = events
                       .where((event) => event.eventType == "recurring")

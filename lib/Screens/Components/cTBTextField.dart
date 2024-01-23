@@ -6,6 +6,7 @@ class CTBTextField extends StatelessWidget {
   final TextAlign textAlign;
   final IconData? icon;
   final bool readOnly;
+  final bool obscureText;
 
   const CTBTextField({
     Key? key,
@@ -14,11 +15,13 @@ class CTBTextField extends StatelessWidget {
     this.textAlign = TextAlign.center,
     this.icon,
     this.readOnly = false,
+    this.obscureText = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      obscureText: obscureText,
       textAlign: textAlign,
       controller: controller,
       readOnly: readOnly,

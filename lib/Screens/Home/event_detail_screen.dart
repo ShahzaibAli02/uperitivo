@@ -23,6 +23,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   bool isCheckingUserStatus = false;
   bool joinRequest = false;
   UserModel? user;
+  int userRating = -1;
 
   void _openDrawer() {
     _scaffoldKey.currentState?.openEndDrawer();
@@ -50,6 +51,13 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         isCheckingUserStatus = false;
       });
     }
+    if (!isEventOpen(widget.event.eventType, widget.event.eventTime,
+            widget.event.untilDate, widget.event.eventDate) &&
+        _isUserInEvent &&
+        !widget.event.hasUserRated(user!.uid)) {
+      // showRatingModal = true;
+      _openRatingModal();
+    }
   }
 
   Future<void> joinEvent() async {
@@ -65,6 +73,100 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
         joinRequest = false;
       });
     }
+  }
+
+  Future<void> _openRatingModal() async {
+    await showModalBottomSheet(
+      backgroundColor: Colors.white,
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Container(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Rate the Event',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: userRating == 0,
+                        onChanged: (value) {
+                          setState(() {
+                            userRating = value! ? 0 : -1;
+                          });
+                        },
+                      ),
+                      const Text('I haven\'t attended the event'),
+                    ],
+                  ),
+                  if (userRating != 0)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(
+                        5,
+                        (index) {
+                          return IconButton(
+                            icon: Icon(
+                              index < userRating
+                                  ? Icons.star
+                                  : Icons.star_border,
+                              color: Colors.yellow,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                userRating = index + 1;
+                              });
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (kDebugMode) {
+                        print('User Rating: $userRating');
+                      }
+
+                      bool res = await RegisterController()
+                          .addRating(widget.event.eventId, userRating, context);
+
+                      if (res) {
+                        if (mounted) {
+                          await RegisterController()
+                              .getAllEventsForCompanies(context);
+                        }
+                        if (mounted) {
+                          showSuccessSnackBar(
+                              context, 'Thanks for your feedback');
+                        }
+                      } else {
+                        if (mounted) {
+                          showErrorSnackBar(
+                              context, "Error while recording rating!");
+                        }
+                      }
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Submit Rating'),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -249,7 +351,10 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                       ...List.generate(
                                         5,
                                         (index) => Icon(
-                                          index < widget.event.rating.floor()
+                                          index <
+                                                  widget.event
+                                                      .calRating()
+                                                      .floor()
                                               ? Icons.star
                                               : Icons.star_border,
                                           color: Colors.white,

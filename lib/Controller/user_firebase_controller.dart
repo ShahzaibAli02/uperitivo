@@ -224,7 +224,9 @@ class RegisterController {
         }
 
         companyEventsMap[userDoc.id] = eventsList;
-        updateAllEventsForCompanies(companyEventsMap, context);
+        if (context.mounted) {
+          updateAllEventsForCompanies(companyEventsMap, context);
+        }
       }
     } catch (e) {
       if (kDebugMode) {
@@ -262,15 +264,54 @@ class RegisterController {
           }
         }
       }
-
-      await getAllEventsForCompanies(context);
-      showSuccessSnackBar(context,
-          'Added user to event participants for all users successfully');
+      if (context.mounted) {
+        await getAllEventsForCompanies(context);
+      }
+      if (context.mounted) {
+        showSuccessSnackBar(context, 'Added user to event participants');
+      }
       return participants;
     } catch (e) {
-      showErrorSnackBar(context, 'Error adding user to event participants: $e');
+      if (context.mounted) {
+        showErrorSnackBar(
+            context, 'Error adding user to event participants: $e');
+      }
       return participants;
     }
+  }
+
+  Future<bool> addRating(
+      String eventId, int rating, BuildContext context) async {
+    User? currentUser = _auth.currentUser;
+    Map<String, dynamic> ratings = {};
+
+    try {
+      QuerySnapshot usersSnapshot = await _firestore.collection('users').get();
+
+      for (QueryDocumentSnapshot userDoc in usersSnapshot.docs) {
+        List<dynamic>? userEvents = userDoc['events'];
+
+        if (userEvents != null) {
+          for (int i = 0; i < userEvents.length; i++) {
+            if (userEvents[i]['eventId'] == eventId) {
+              ratings = Map<String, dynamic>.from(userEvents[i]['rating']);
+
+              ratings[currentUser!.uid] = rating;
+              userEvents[i]['rating'] = ratings;
+
+              await _firestore.collection('users').doc(userDoc.id).update({
+                'events': userEvents,
+              });
+
+              return true;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      print(e);
+    }
+    return false;
   }
 
   Future<bool> isUserInEventParticipants(EventModel event) async {

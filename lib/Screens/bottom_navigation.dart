@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:uperitivo/Controller/user_firebase_controller.dart';
-import 'package:uperitivo/SplashScreen.dart';
-// import 'package:uperitivo/Controller/register_controller.dart';
 import 'package:uperitivo/Screens/Home/home.dart';
 import 'package:uperitivo/Screens/Events/events_screen.dart';
 import 'package:uperitivo/Screens/Participants/participants_section.dart';
 import 'package:uperitivo/Screens/Location/locationScreen.dart';
-import 'package:uperitivo/Utils/helpers.dart';
 
 class BottomNavigation extends StatefulWidget {
   const BottomNavigation({super.key});
@@ -23,7 +19,6 @@ class _BottomNavigationState extends State<BottomNavigation> {
     const EventsScreen(),
     const ParticipantsScreen(),
     const LocationScreen(),
-    const PreviousScreen(),
   ];
 
   @override
@@ -41,51 +36,31 @@ class _BottomNavigationState extends State<BottomNavigation> {
               _currentIndex = index;
             });
           },
+          showSelectedLabels: false,
+          showUnselectedLabels: false,
+          selectedIconTheme: const IconThemeData(color: Colors.black),
+          unselectedIconTheme: const IconThemeData(color: Color(0xffA0A0A0)),
           items: const [
             BottomNavigationBarItem(
               icon: Icon(
                 Icons.home,
-                color: Color(0xffA0A0A0),
               ),
               label: 'Home',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.event, color: Color(0xffA0A0A0)),
+              icon: Icon(Icons.event),
               label: 'Events',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.people, color: Color(0xffA0A0A0)),
+              icon: Icon(Icons.people),
               label: 'Participants',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.location_on, color: Color(0xffA0A0A0)),
+              icon: Icon(Icons.location_on),
               label: 'Location',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.arrow_back, color: Color(0xffA0A0A0)),
-              label: 'Previous',
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class PreviousScreen extends StatelessWidget {
-  const PreviousScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: ElevatedButton(
-        onPressed: () async {
-          await RegisterController().signOut(context);
-          if (context.mounted) {
-            getScreen(context, () => SplashScreen());
-          }
-        },
-        child: const Text('Sign Out'),
       ),
     );
   }
