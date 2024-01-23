@@ -179,7 +179,8 @@ class _RegisterMainState extends State<RegisterMain> {
     String cf = cfController.text.trim();
     String password = passwordController.text;
     String confirmPassword = confirmPasswordController.text;
-    String image = 'to be upload';
+    String image =
+        'https://firebasestorage.googleapis.com/v0/b/uperitivo-b5e06.appspot.com/o/users_images%2Fplaceholder_register_image.png?alt=media&token=18faa3b5-3a63-4bb5-8bb4-ddc9aeb8492b';
 
     List<String> requiredFields = [];
 
@@ -220,7 +221,7 @@ class _RegisterMainState extends State<RegisterMain> {
     }
     if (validateInputs(requiredFields) && isValidEmail(email)) {
       if (pickedImage != null) {
-        String imagePath = 'users_images/${Uuid().v4()}';
+        String imagePath = 'users_images/${const Uuid().v4()}';
         await firebase_storage.FirebaseStorage.instance
             .ref(imagePath)
             .putFile(pickedImage!);
@@ -228,13 +229,7 @@ class _RegisterMainState extends State<RegisterMain> {
         image = await firebase_storage.FirebaseStorage.instance
             .ref(imagePath)
             .getDownloadURL();
-      } else {
-        if (mounted) {
-          showErrorSnackBar(context, "Failed,Error while uploading image...");
-        }
-        return;
       }
-
       RegisterController registerController = RegisterController();
       var uuid = const Uuid();
       var v4 = uuid.v4();
@@ -302,119 +297,122 @@ class _RegisterMainState extends State<RegisterMain> {
               _openDrawer();
             },
           ),
-          const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text(
-              'Crea o modifica\n   il tuo profilo',
-              style: TextStyle(
-                color: Color(0xFFA04805),
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        firstButtonClicked = true;
-                        secondButtonClicked = false;
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor:
-                          firstButtonClicked ? Colors.white : Colors.black,
-                      backgroundColor: firstButtonClicked
-                          ? const Color(0xFFEC6500)
-                          : Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20.0),
-                        side: const BorderSide(
-                          color: Color(0xFFEC6500),
-                        ),
-                      ),
-                    ),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 24,
-                      ),
-                      child: Text(
-                        'Privato',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        secondButtonClicked = true;
-                        firstButtonClicked = false;
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor:
-                          secondButtonClicked ? Colors.white : Colors.black,
-                      backgroundColor: secondButtonClicked
-                          ? const Color(0xFFEC6500)
-                          : Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20.0),
-                        side: const BorderSide(
-                          color: Color(0xFFEC6500),
-                        ),
-                      ),
-                    ),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 24,
-                      ),
-                      child: Text(
-                        'Esercente',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (!firstButtonClicked && !secondButtonClicked)
-            Image.asset('assets/images/placeholder_register_image.png'),
-          if (firstButtonClicked || secondButtonClicked)
-            const Padding(
-              padding: EdgeInsets.only(left: 16),
-              child: Row(
-                children: [
-                  Text(
-                    "*Campi obbligatori",
-                    style: TextStyle(fontSize: 14, color: Color(0xff7E84A3)),
-                  ),
-                ],
-              ),
-            ),
-          const SizedBox(
-            height: 20,
-          ),
           Expanded(
             child: SingleChildScrollView(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text(
+                      'Crea o modifica\n   il tuo profilo',
+                      style: TextStyle(
+                        color: Color(0xFFA04805),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 24,
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                firstButtonClicked = true;
+                                secondButtonClicked = false;
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: firstButtonClicked
+                                  ? Colors.white
+                                  : Colors.black,
+                              backgroundColor: firstButtonClicked
+                                  ? const Color(0xFFEC6500)
+                                  : Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20.0),
+                                side: const BorderSide(
+                                  color: Color(0xFFEC6500),
+                                ),
+                              ),
+                            ),
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(
+                                vertical: 12,
+                                horizontal: 24,
+                              ),
+                              child: Text(
+                                'Privato',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Flexible(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                secondButtonClicked = true;
+                                firstButtonClicked = false;
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: secondButtonClicked
+                                  ? Colors.white
+                                  : Colors.black,
+                              backgroundColor: secondButtonClicked
+                                  ? const Color(0xFFEC6500)
+                                  : Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20.0),
+                                side: const BorderSide(
+                                  color: Color(0xFFEC6500),
+                                ),
+                              ),
+                            ),
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(
+                                vertical: 12,
+                                horizontal: 24,
+                              ),
+                              child: Text(
+                                'Esercente',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (!firstButtonClicked && !secondButtonClicked)
+                    Image.asset('assets/images/placeholder_register_image.png'),
+                  if (firstButtonClicked || secondButtonClicked)
+                    const Padding(
+                      padding: EdgeInsets.only(left: 16),
+                      child: Row(
+                        children: [
+                          Text(
+                            "*Campi obbligatori",
+                            style: TextStyle(
+                                fontSize: 14, color: Color(0xff7E84A3)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(
+                    height: 20,
+                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: Column(

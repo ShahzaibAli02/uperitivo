@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:uperitivo/Controller/user_firebase_controller.dart';
 import 'package:uperitivo/Models/user_model.dart';
+import 'package:uperitivo/Provider/user_provider.dart';
 import 'package:uperitivo/Screens/UserAccount/login.dart';
 import 'package:uperitivo/Screens/bottom_navigation.dart';
 import 'package:uperitivo/SplashScreen.dart';
@@ -91,6 +93,11 @@ class DrawerScreen extends StatelessWidget {
                   ),
                   onTap: () async {
                     await RegisterController().signOut(context);
+                    if (context.mounted) {
+                      final userProvider =
+                          Provider.of<UserProvider>(context!, listen: false);
+                      userProvider.resetData();
+                    }
                     if (context.mounted) {
                       getScreen(context, () => SplashScreen(),
                           removePreviousScreens: true);

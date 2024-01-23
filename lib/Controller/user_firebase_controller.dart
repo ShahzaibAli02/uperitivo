@@ -367,4 +367,20 @@ class RegisterController {
       return [];
     }
   }
+
+  Future<bool> sendPasswordResetEmail(
+      String email, BuildContext context) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      if (context.mounted) {
+        showSuccessSnackBar(context, "Password reset email sent successfully");
+      }
+      return true;
+    } catch (e) {
+      if (context.mounted) {
+        showErrorSnackBar(context, 'Error sending password reset email: $e');
+      }
+      return false;
+    }
+  }
 }

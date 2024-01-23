@@ -6,6 +6,7 @@ import 'package:uperitivo/Screens/Components/cTBTextField.dart';
 import 'package:uperitivo/Screens/Components/drawer_screen.dart';
 import 'package:uperitivo/Screens/Components/footer.dart';
 import 'package:uperitivo/Screens/Components/header.dart';
+import 'package:uperitivo/Screens/UserAccount/forgot_password.dart';
 import 'package:uperitivo/Screens/bottom_navigation.dart';
 import 'package:uperitivo/Utils/helpers.dart';
 
@@ -90,7 +91,11 @@ class _LoginScreenState extends State<LoginScreen> {
                               color: Colors.black,
                               decoration: TextDecoration.underline,
                             ),
-                            recognizer: TapGestureRecognizer()..onTap = () {},
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                getScreen(
+                                    context, () => ForgotPasswordScreen());
+                              },
                           ),
                           const TextSpan(
                             text: '?',

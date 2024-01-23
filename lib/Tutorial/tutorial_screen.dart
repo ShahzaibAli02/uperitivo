@@ -22,6 +22,7 @@ class TutorialScreen extends StatelessWidget {
             onDrawerTap: () {
               _openDrawer();
             },
+            screenName: "tutorial",
           ),
           Expanded(
             child: ListView(

@@ -58,6 +58,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       // showRatingModal = true;
       _openRatingModal();
     }
+    print(user!.name);
   }
 
   Future<void> joinEvent() async {
@@ -70,9 +71,11 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       setState(() {
         _isUserInEvent = true;
         widget.event.participants = res;
-        joinRequest = false;
       });
     }
+    setState(() {
+      joinRequest = false;
+    });
   }
 
   Future<void> _openRatingModal() async {
@@ -387,7 +390,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                       widget.event.eventType,
                                       widget.event.eventTime,
                                       widget.event.untilDate,
-                                      widget.event.eventDate)
+                                      widget.event.eventDate) ||
+                                  user.runtimeType.toString() == "null"
                               ? null
                               : joinEvent,
                           style: ElevatedButton.styleFrom(

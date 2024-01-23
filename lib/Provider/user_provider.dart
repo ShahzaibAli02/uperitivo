@@ -49,4 +49,10 @@ class UserProvider extends ChangeNotifier {
 
     return allCompanyEvents;
   }
+
+  void resetData() {
+    _currentUser = null;
+    _companyEventsMap.clear();
+    notifyListeners();
+  }
 }

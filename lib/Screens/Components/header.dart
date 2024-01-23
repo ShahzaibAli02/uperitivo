@@ -5,11 +5,13 @@ import 'package:uperitivo/Utils/helpers.dart';
 class Header extends StatelessWidget {
   final VoidCallback onIconTap;
   final VoidCallback onDrawerTap;
+  final String screenName;
 
   const Header({
     Key? key,
     required this.onIconTap,
     required this.onDrawerTap,
+    this.screenName = "",
   }) : super(key: key);
 
   @override
@@ -28,9 +30,11 @@ class Header extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           InkWell(
-            onTap: () {
-              getScreen(context, () => TutorialScreen());
-            },
+            onTap: screenName == "tutorial"
+                ? null
+                : () {
+                    getScreen(context, () => TutorialScreen());
+                  },
             child: Ink(
               decoration: BoxDecoration(
                 borderRadius:
