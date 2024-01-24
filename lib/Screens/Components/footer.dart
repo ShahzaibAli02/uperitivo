@@ -10,11 +10,15 @@ class Footer extends StatelessWidget {
     return Column(
       children: [
         InkWell(
+          customBorder: new CircleBorder(),
           onTap: () {
             getScreen(context, () => SplashScreen(),
                 removePreviousScreens: true);
           },
-          child: Image.asset("assets/images/home.png"),
+          child:Padding(
+            padding: EdgeInsets.all(10),
+            child:  Image.asset("assets/images/home.png"),
+          ),
         ),
         const Align(
           alignment: Alignment.bottomCenter,

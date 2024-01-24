@@ -316,6 +316,7 @@ class _RegisterMainState extends State<RegisterMain> {
                   Padding(
                     padding: const EdgeInsets.all(12),
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Flexible(
                           child: ElevatedButton(
@@ -344,13 +345,18 @@ class _RegisterMainState extends State<RegisterMain> {
                                 vertical: 12,
                                 horizontal: 24,
                               ),
-                              child: Text(
-                                'Privato',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
+                                child:FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    'Privato',
+                                    maxLines: 1,
+                                    style: TextStyle(
+                                      overflow: TextOverflow.ellipsis,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
-                              ),
                             ),
                           ),
                         ),
@@ -382,11 +388,16 @@ class _RegisterMainState extends State<RegisterMain> {
                                 vertical: 12,
                                 horizontal: 24,
                               ),
-                              child: Text(
-                                'Esercente',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
+                              child:FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  'Esercente',
+                                  maxLines: 1,
+                                  style: TextStyle(
+                                    overflow: TextOverflow.ellipsis,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ),
