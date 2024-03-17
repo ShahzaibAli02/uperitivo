@@ -1,11 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:uperitivo/Controller/user_firebase_controller.dart';
 import 'package:uperitivo/Models/event_model.dart';
 import 'package:uperitivo/Models/user_model.dart';
 import 'package:uperitivo/Screens/Components/drawer_screen.dart';
 import 'package:uperitivo/Screens/Components/header.dart';
 import 'package:uperitivo/Screens/Home/event_participants.dart';
+import 'package:uperitivo/Screens/UserAccount/login.dart';
 import 'package:uperitivo/Utils/helpers.dart';
 
 class EventDetailScreen extends StatefulWidget {
@@ -22,6 +24,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
   bool _isUserInEvent = false;
   bool isCheckingUserStatus = false;
   bool joinRequest = false;
+  bool cancelRequest = false;
   UserModel? user;
   int userRating = -1;
 
@@ -58,7 +61,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       // showRatingModal = true;
       _openRatingModal();
     }
-    print(user!.name);
   }
 
   Future<void> joinEvent() async {
@@ -76,6 +78,68 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     setState(() {
       joinRequest = false;
     });
+  }
+
+  Future<void> cancelEvent() async {
+    setState(() {
+      cancelRequest = true;
+    });
+    List<String> res =
+        await RegisterController().removeEvent(widget.event.eventId, context);
+    print(res.length);
+    print(widget.event.participants.length);
+    if (mounted && res.length == widget.event.participants.length - 1) {
+      setState(() {
+        _isUserInEvent = false;
+        widget.event.participants = res;
+      });
+    }
+    setState(() {
+      cancelRequest = false;
+    });
+  }
+
+  void _showLocationModal() {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SizedBox(
+          height: 400,
+          child: Column(
+            children: [
+              Expanded(
+                child: GoogleMap(
+                  initialCameraPosition: CameraPosition(
+                    target: LatLng(
+                      widget.event.longitude,
+                      widget.event.latitude,
+                    ),
+                    zoom: 0,
+                  ),
+                  onMapCreated: (GoogleMapController controller) {},
+                  onTap: (LatLng location) {
+                    // Handle map tap
+                  },
+                  myLocationEnabled: true,
+                  myLocationButtonEnabled: true,
+                  markers: Set<Marker>.from([
+                    Marker(
+                      markerId: MarkerId(widget.event.eventId),
+                      position:
+                          LatLng(widget.event.latitude, widget.event.longitude),
+                      infoWindow: InfoWindow(
+                        title: widget.event.eventName,
+                        snippet: widget.event.companyName,
+                      ),
+                    )
+                  ]),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _openRatingModal() async {
@@ -184,6 +248,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             onDrawerTap: () {
               _openDrawer();
             },
+            showBackButton: true,
           ),
           Expanded(
             child: Padding(
@@ -192,80 +257,135 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "TOCAI & BUBU",
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                              color: Color(0xff354052)),
-                        ),
-                        Row(
-                          children: [
-                            InkWell(
-                                onTap: () {
-                                  getScreen(
-                                      context,
-                                      () => EventParticipantsScreen(
-                                          event: widget.event));
-                                },
-                                child: const Icon(Icons.people)),
-                            const SizedBox(width: 5),
-                            Text(
-                              "${widget.event.participants.length}",
-                              style: const TextStyle(fontSize: 20),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Row(
+                          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          //   children: [
+                          //     Text(
+                          //       widget.event.companyName,
+                          //       style: const TextStyle(
+                          //           fontWeight: FontWeight.bold,
+                          //           fontSize: 20,
+                          //           color: Color(0xff354052)),
+                          //     ),
+                          //     Row(
+                          //       children: [
+                          //         InkWell(
+                          //             onTap: () {
+                          //               getScreen(
+                          //                   context,
+                          //                   () => EventParticipantsScreen(
+                          //                       event: widget.event));
+                          //             },
+                          //             child: const Icon(
+                          //               Icons.people,
+                          //               size: 40,
+                          //             )),
+                          //         const SizedBox(width: 5),
+                          //         Text(
+                          //           "${widget.event.participants.length}",
+                          //           style: const TextStyle(fontSize: 25),
+                          //         ),
+                          //       ],
+                          //     ),
+                          //   ],
+                          // ),
 
-                    Text(
-                      widget.event.category,
-                      style: const TextStyle(
-                          color: Color(0xff354052), fontSize: 18),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      widget.event.eventName,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 30,
-                          color: Color(0xff354052)),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              // Text(
+                              //   widget.event.eventName.length > 33
+                              //       ? '${widget.event.eventName.substring(0, 33)}...'
+                              //       : widget.event.eventName,
+                              //   style: const TextStyle(
+                              //     fontWeight: FontWeight.bold,
+                              //     fontSize: 20,
+                              //     color: Color(0xff354052),
+                              //   ),
+                              // ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.location_on,
+                                  size: 30,
+                                  color: Colors.blue,
+                                ),
+                                onPressed: () {
+                                  _showLocationModal();
+                                },
+                                tooltip: 'Show Location',
+                                splashColor: Colors.blue.withOpacity(0.2),
+                                highlightColor: Colors.blue.withOpacity(0.1),
+                                padding: const EdgeInsets.all(8),
+                                alignment: Alignment.center,
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 16),
-                    // Card Widget with Event Image and Details
                     Card(
-                      // margin: const EdgeInsets.all(8.0),
+                      color: Colors.white,
+                      elevation: 10,
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 8, horizontal: 20),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15.0),
                       ),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Stack(
                             children: [
-                              Container(
-                                height: 225,
-                                decoration: BoxDecoration(
-                                  borderRadius: const BorderRadius.vertical(
-                                      top: Radius.circular(12.0)),
-                                  image: DecorationImage(
-                                      image: NetworkImage(
-                                        widget.event.image,
-                                      ),
-                                      fit: BoxFit.cover),
+                              AspectRatio(
+                                aspectRatio: 16 / 9,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(12.0),
+                                    ),
+                                    image: DecorationImage(
+                                      image: NetworkImage(widget.event.image),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
                                 ),
                               ),
-                              Positioned(
-                                top: 0,
-                                right: 50,
-                                child: SizedBox(
-                                  width: 49,
-                                  height: 42,
-                                  child: Image.asset(
-                                    "assets/images/${isEventOpen(widget.event.eventType, widget.event.eventTime, widget.event.untilDate, widget.event.eventDate) ? "open_badge" : "close_badge"}.png",
+                              Positioned.fill(
+                                child: Align(
+                                  alignment: Alignment.center,
+                                  child: Center(
+                                    // Wrap the Text widget with a Center widget
+                                    child: Container(
+                                      padding: const EdgeInsets.all(
+                                          8.0), // Add some padding around the text
+                                      color: Colors.black.withOpacity(
+                                          0.5), // Semi-transparent black background
+                                      child: Text(
+                                        widget.event.eventName,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 28,
+                                          shadows: [
+                                            Shadow(
+                                              blurRadius:
+                                                  10, // Increase the blur radius
+                                              color: Colors.black,
+                                              offset: Offset(
+                                                  4, 4), // Increase the offset
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -279,7 +399,8 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                     color: Color(int.parse(
                                         widget.event.categoryColor.toString())),
                                     borderRadius: const BorderRadius.only(
-                                        topLeft: Radius.circular(16)),
+                                      topLeft: Radius.circular(16),
+                                    ),
                                   ),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
@@ -308,30 +429,105 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                           Stack(
                             children: [
                               Container(
-                                height: 225,
-                                width: double.infinity,
                                 padding: const EdgeInsets.all(8.0),
                                 decoration: BoxDecoration(
                                   color: widget.event.eventType == "special"
                                       ? const Color(0xffD9C301)
                                       : Colors.white,
                                   borderRadius: const BorderRadius.vertical(
-                                      bottom: Radius.circular(12.0)),
+                                    bottom: Radius.circular(12.0),
+                                  ),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
+                                    const SizedBox(
+                                      height: 25,
+                                    ),
                                     Text(
-                                      widget.event.eventName,
+                                      widget.event.companyName,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 20,
                                       ),
                                     ),
+                                    // Limited to 2 lines
                                     Text(
                                       widget.event.eventDescription,
                                       style: const TextStyle(fontSize: 18),
+                                    ),
+                                    Container(
+                                      margin: const EdgeInsets.symmetric(
+                                          vertical: 8.0),
+                                      height: 1.0,
+                                      color: const Color(0xFF707070),
+                                    ),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          formatItalianDate(
+                                              widget.event.eventDate),
+                                          style: const TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        const Text(
+                                          "|",
+                                          style: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        InkWell(
+                                          onTap: () {
+                                            getScreen(
+                                              context,
+                                              () => EventParticipantsScreen(
+                                                  event: widget.event),
+                                            );
+                                          },
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.people,
+                                                color: widget.event.eventType !=
+                                                        "special"
+                                                    ? const Color(0xffA0A0A0)
+                                                    : Colors.white,
+                                              ),
+                                              const SizedBox(width: 5),
+                                              Text(
+                                                "${widget.event.participants.length}",
+                                                style: const TextStyle(
+                                                    fontSize: 20,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const Text(
+                                          "|",
+                                          style: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        GestureDetector(
+                                          onTap: () {},
+                                          child: Text(
+                                            'Partecipa !',
+                                            style: TextStyle(
+                                                color: widget.event.eventType !=
+                                                        "special"
+                                                    ? const Color(0xffEC6500)
+                                                    : Colors.white,
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
@@ -364,9 +560,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                                           size: 16,
                                         ),
                                       ),
-                                      const SizedBox(
-                                        width: 5,
-                                      ),
+                                      const SizedBox(width: 5),
                                     ],
                                   ),
                                 ),
@@ -377,43 +571,82 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                       ),
                     ),
                     const SizedBox(
-                      height: 20,
+                      height: 30,
                     ),
-                    if (user!.userType != "company")
+                    if (user == null)
+                      Center(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            getScreen(
+                                context,
+                                () => LoginScreen(
+                                      isFromInside: true,
+                                      onPop: () {
+                                        user = getCurrentUser(context);
+                                        setState(() {});
+                                      },
+                                    ));
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF5887DC),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 24,
+                            ),
+                            child: Text(
+                              'Accedi per partecipare',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ),
+                      )
+                    else if (user!.userType != "company" &&
+                        isEventOpen(
+                            widget.event.eventType,
+                            widget.event.eventTime,
+                            widget.event.untilDate,
+                            widget.event.eventDate))
                       Container(
                         width: double.infinity,
                         margin: const EdgeInsets.symmetric(horizontal: 20),
                         child: ElevatedButton(
                           onPressed: _isUserInEvent ||
                                   isCheckingUserStatus ||
-                                  !isEventOpen(
-                                      widget.event.eventType,
-                                      widget.event.eventTime,
-                                      widget.event.untilDate,
-                                      widget.event.eventDate) ||
                                   user.runtimeType.toString() == "null"
-                              ? null
+                              ? cancelEvent
                               : joinEvent,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
+                            backgroundColor:
+                                _isUserInEvent ? Colors.white : Colors.green,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10.0),
+                              side: const BorderSide(color: Colors.green),
                             ),
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: joinRequest
-                                ? const Center(
+                            child: joinRequest || cancelRequest
+                                ? Center(
                                     child: CircularProgressIndicator(
-                                      color: Colors.white,
+                                      color: joinRequest
+                                          ? Colors.white
+                                          : Colors.green,
                                     ),
                                   )
                                 : Text(
                                     _isUserInEvent ? 'C6 !' : 'Partecipa',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18,
-                                      color: Colors.white,
+                                      color: _isUserInEvent
+                                          ? Colors.green
+                                          : Colors.white,
                                     ),
                                   ),
                           ),

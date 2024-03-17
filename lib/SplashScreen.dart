@@ -47,7 +47,11 @@ class SplashScreen extends StatelessWidget {
                     }
                   } else {
                     if (context.mounted) {
-                      getScreen(context, () => const LoginScreen());
+                      await registerController
+                          .getAllEventsForCompanies(context);
+                    }
+                    if (context.mounted) {
+                      getScreen(context, () => const BottomNavigation());
                     }
                   }
                 },
@@ -57,10 +61,13 @@ class SplashScreen extends StatelessWidget {
                 ),
                 child: const Text(
                   'ENTRA',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 30),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -75,7 +82,8 @@ class SplashScreen extends StatelessWidget {
                           style: TextStyle(
                               color: Colors.white,
                               decoration: TextDecoration.none,
-                              fontWeight: FontWeight.bold),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18),
                         ),
                         Container(
                           height: 2.0,
@@ -86,7 +94,7 @@ class SplashScreen extends StatelessWidget {
                     ),
                   ),
                   const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 2),
+                    padding: EdgeInsets.symmetric(horizontal: 10),
                     child: Text(
                       "o",
                       style: TextStyle(
@@ -105,7 +113,8 @@ class SplashScreen extends StatelessWidget {
                           style: TextStyle(
                               color: Colors.white,
                               decoration: TextDecoration.none,
-                              fontWeight: FontWeight.bold),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18),
                         ),
                         Container(
                           height: 2.0,

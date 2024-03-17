@@ -14,7 +14,6 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  GoogleMapController? _mapController;
   Position? _currentPosition;
   List<Marker> _markers = [];
   String? _selectedPharmacyName;
@@ -120,9 +119,7 @@ class _MapScreenState extends State<MapScreen> {
                       ),
                       zoom: 15,
                     ),
-                    onMapCreated: (GoogleMapController controller) {
-                      _mapController = controller;
-                    },
+                    onMapCreated: (GoogleMapController controller) {},
                     markers: Set<Marker>.from(_markers),
                     onTap: (LatLng location) {
                       setState(() {

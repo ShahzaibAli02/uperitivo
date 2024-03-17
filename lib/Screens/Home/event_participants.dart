@@ -40,12 +40,14 @@ class _EventParticipantsScreenState extends State<EventParticipantsScreen> {
       isCheckingUserStatus = true;
     });
     user = getCurrentUser(context);
-    bool isUserInEvent =
-        await RegisterController().isUserInEventParticipants(widget.event);
-    print(isUserInEvent);
+    if (user != null) {
+      bool isUserInEvent =
+          await RegisterController().isUserInEventParticipants(widget.event);
+      _isUserInEvent = isUserInEvent;
+    }
+
     if (mounted) {
       setState(() {
-        _isUserInEvent = isUserInEvent;
         isCheckingUserStatus = false;
       });
     }
@@ -156,7 +158,7 @@ class _EventParticipantsScreenState extends State<EventParticipantsScreen> {
                                     _participantsList[index].image),
                               ),
                               title: Text(
-                                "${_participantsList[index].nickname} ${_participantsList[index].name}",
+                                _participantsList[index].nickname,
                                 style: const TextStyle(
                                     fontWeight: FontWeight.bold),
                               ),
@@ -166,39 +168,44 @@ class _EventParticipantsScreenState extends State<EventParticipantsScreen> {
                         );
                       },
                     ),
-                    if (user!.userType != "company")
-                      Container(
-                        width: double.infinity,
-                        margin: const EdgeInsets.symmetric(horizontal: 20),
-                        child: ElevatedButton(
-                          onPressed: _isUserInEvent ||
-                                  isCheckingUserStatus ||
-                                  !isEventOpen(
-                                      widget.event.eventType,
-                                      widget.event.eventTime,
-                                      widget.event.untilDate,
-                                      widget.event.eventDate)
-                              ? null
-                              : joinEvent,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10.0),
+                    if (user != null)
+                      if (user!.userType != "company")
+                        Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.symmetric(horizontal: 20),
+                          child: ElevatedButton(
+                            onPressed: _isUserInEvent ||
+                                    isCheckingUserStatus ||
+                                    !isEventOpen(
+                                        widget.event.eventType,
+                                        widget.event.eventTime,
+                                        widget.event.untilDate,
+                                        widget.event.eventDate)
+                                ? () {}
+                                : joinEvent,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  _isUserInEvent ? Colors.white : Colors.green,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10.0),
+                                side: const BorderSide(color: Colors.green),
+                              ),
                             ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              _isUserInEvent ? 'C6 !' : 'Partecipa',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                color: Colors.white,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                _isUserInEvent ? 'C6 !' : 'Partecipa',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  color: _isUserInEvent
+                                      ? Colors.green
+                                      : Colors.white,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
                   ],
                 ),
               ),

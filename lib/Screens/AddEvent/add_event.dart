@@ -37,7 +37,7 @@ class _AddEventHomeState extends State<AddEventHome> {
   String eventDate = "";
   String eventTime = "";
   bool isUniqueEvent = false;
-  String eventDay = "";
+  List eventDays = [];
   String dateFinalAt = "";
   String category = "";
   String categoryColor = "";
@@ -70,7 +70,7 @@ class _AddEventHomeState extends State<AddEventHome> {
     eventDate = '';
     eventTime = '';
     isUniqueEvent = false;
-    eventDay = '';
+    eventDays = [];
     dateFinalAt = '';
     category = '';
     categoryColor = '';
@@ -102,6 +102,13 @@ class _AddEventHomeState extends State<AddEventHome> {
       }
 
       if (!isUniqueEvent) {
+        if (eventDays.isEmpty) {
+          showErrorSnackBar(context, "Seleziona il/i giorno/i dell'evento");
+          setState(() {
+            isAddingEvent = false;
+          });
+          return;
+        }
         if (dateFinalAt.isEmpty) {
           showErrorSnackBar(context, "Select fino al(compresso)");
           setState(() {
@@ -154,11 +161,12 @@ class _AddEventHomeState extends State<AddEventHome> {
         eventTime: eventTime,
         eventType: isUniqueEvent ? "special" : "recurring",
         category: category,
+        city: user!.city,
         categoryColor: categoryColor,
         image: image,
         participants: [],
         untilDate: dateFinalAt,
-        day: eventDay,
+        day: eventDays,
         recurring: !isUniqueEvent,
         rating: {},
         companyName: user!.cmpName,
@@ -192,6 +200,7 @@ class _AddEventHomeState extends State<AddEventHome> {
     return Scaffold(
       backgroundColor: Colors.white,
       key: _scaffoldKey,
+      resizeToAvoidBottomInset: false,
       drawerEnableOpenDragGesture: false,
       body: Column(
         children: [
@@ -200,6 +209,7 @@ class _AddEventHomeState extends State<AddEventHome> {
             onDrawerTap: () {
               _openDrawer();
             },
+            showBackButton: true,
           ),
           const Padding(
             padding: EdgeInsets.all(16.0),
@@ -225,7 +235,7 @@ class _AddEventHomeState extends State<AddEventHome> {
                       hintText: user!.cmpName,
                       icon: Icons.edit,
                       textAlign: TextAlign.start,
-                      readOnly: true,
+                      readOnly: false,
                     ),
                     const SizedBox(
                       height: 20,
@@ -242,21 +252,21 @@ class _AddEventHomeState extends State<AddEventHome> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         EventDay(
-                          onSelectionChanged: (selectedDate, selectedDay,
+                          onSelectionChanged: (selectedDays, selectedDate,
                               isEventoUnicoSelected) {
-                            print('Selected Date: $selectedDate');
-                            print('Selected Day: $selectedDay');
-                            print(
-                                'Is Evento Unico Selected: $isEventoUnicoSelected');
+                            // print('Selected Date: $selectedDate');
+                            // print('Selected Day: $selectedDays');
+                            // print(
+                            //     'Is Evento Unico Selected: $isEventoUnicoSelected');
                             dateFinalAt = selectedDate;
-                            eventDay = selectedDay.toString();
+                            eventDays = selectedDays;
                             isUniqueEvent = isEventoUnicoSelected;
                           },
                         ),
                         Category(
                           onCategoryChanged: (selectedCategory, selectedColor) {
-                            print('Selected Category: $selectedCategory');
-                            print('Selected Color: $selectedColor');
+                            // print('Selected Category: $selectedCategory');
+                            // print('Selected Color: $selectedColor');
                             category = selectedCategory;
                             categoryColor = selectedColor.value.toString();
                           },

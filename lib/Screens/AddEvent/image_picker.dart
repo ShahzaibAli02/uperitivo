@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:convert';
 
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
@@ -10,16 +9,17 @@ class ImagePickerComponent extends StatefulWidget {
   const ImagePickerComponent({Key? key, this.onImagePicked}) : super(key: key);
 
   @override
-  _ImagePickerComponentState createState() => _ImagePickerComponentState();
+  State<ImagePickerComponent> createState() => _ImagePickerComponentState();
 }
 
 class _ImagePickerComponentState extends State<ImagePickerComponent> {
   XFile? image;
   final ImagePicker imagePicker = ImagePicker();
+  late Size size;
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
+    size = MediaQuery.of(context).size;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -38,23 +38,60 @@ class _ImagePickerComponentState extends State<ImagePickerComponent> {
               color: Colors.blueGrey,
               strokeWidth: 1,
               dashPattern: const [5, 5],
-              child: SizedBox.expand(
-                child: FittedBox(
-                  child: (image != null)
-                      ? Image.file(
-                          File(image!.path),
-                          fit: BoxFit.cover,
-                        )
-                      : const Icon(
-                          Icons.image_outlined,
-                          color: Colors.blueGrey,
+              child: Stack(
+                children: [
+                  SizedBox.expand(
+                    child: FittedBox(
+                      child: (image != null)
+                          ? _buildImageWidget(image!.path)
+                          : const Icon(
+                              Icons.image_outlined,
+                              color: Colors.blueGrey,
+                            ),
+                    ),
+                  ),
+                  if (image == null)
+                    Positioned(
+                      top: 70,
+                      right: size.width / 2 - 80,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        child: const Text(
+                          '16:9',
+                          style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 36),
                         ),
-                ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildImageWidget(String imagePath) {
+    return ClipRect(
+      child: Align(
+        alignment: Alignment.center,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: size.width, // Set a maximum width for the image
+            maxHeight: 250, // Set a maximum height for the image
+          ),
+          child: AspectRatio(
+            aspectRatio: 16 / 9,
+            child: Image.file(
+              File(imagePath),
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -99,11 +136,10 @@ class _ImagePickerComponentState extends State<ImagePickerComponent> {
       maxWidth: 1800,
       maxHeight: 1800,
     );
-    print(pickedFile);
     if (pickedFile != null) {
       // await convertToBase64(pickedFile);
       if (widget.onImagePicked != null) {
-        widget.onImagePicked!(pickedFile!);
+        widget.onImagePicked!(pickedFile);
       }
     }
     setState(() {
@@ -117,11 +153,10 @@ class _ImagePickerComponentState extends State<ImagePickerComponent> {
       maxWidth: 1800,
       maxHeight: 1800,
     );
-    print(pickedFile);
     if (pickedFile != null) {
       // await convertToBase64(pickedFile);
       if (widget.onImagePicked != null) {
-        widget.onImagePicked!(pickedFile!);
+        widget.onImagePicked!(pickedFile);
       }
     }
     setState(() {

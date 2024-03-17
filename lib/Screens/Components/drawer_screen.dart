@@ -37,22 +37,20 @@ class DrawerScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              if (user != null)
-                ListTile(
-                  title: const Center(
-                    child: Text(
-                      'Visualizza tutti gli eventi',
-                      textAlign: TextAlign.center,
-                    ),
+              ListTile(
+                title: const Center(
+                  child: Text(
+                    'Visualizza tutti gli eventi',
+                    textAlign: TextAlign.center,
                   ),
-                  onTap: () {
-                    if (context.mounted) {
-                      getScreen(context, () => const BottomNavigation(),
-                          removePreviousScreens: true);
-                    }
-                  },
                 ),
-              if (user != null) const Divider(),
+                onTap: () {
+                  if (context.mounted) {
+                    getScreen(context, () => const BottomNavigation(),
+                        removePreviousScreens: true);
+                  }
+                },
+              ),
               ListTile(
                 title: const Center(
                   child: Text(
@@ -83,27 +81,26 @@ class DrawerScreen extends StatelessWidget {
                 },
               ),
               const Divider(),
-              if (user != null)
-                ListTile(
-                  title: const Center(
-                    child: Text(
-                      'LOGOUT',
-                      textAlign: TextAlign.center,
-                    ),
+              ListTile(
+                title: const Center(
+                  child: Text(
+                    'LOGOUT',
+                    textAlign: TextAlign.center,
                   ),
-                  onTap: () async {
-                    await RegisterController().signOut(context);
-                    if (context.mounted) {
-                      final userProvider =
-                          Provider.of<UserProvider>(context!, listen: false);
-                      userProvider.resetData();
-                    }
-                    if (context.mounted) {
-                      getScreen(context, () => SplashScreen(),
-                          removePreviousScreens: true);
-                    }
-                  },
                 ),
+                onTap: () async {
+                  await RegisterController().signOut(context);
+                  if (context.mounted) {
+                    final userProvider =
+                        Provider.of<UserProvider>(context!, listen: false);
+                    userProvider.resetData();
+                  }
+                  if (context.mounted) {
+                    getScreen(context, () => SplashScreen(),
+                        removePreviousScreens: true);
+                  }
+                },
+              ),
             ],
           ),
         ),

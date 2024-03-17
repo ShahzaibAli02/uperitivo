@@ -17,7 +17,7 @@ class UserProvider extends ChangeNotifier {
 
   Future<void> updateCurrentUser(UserModel newUser) async {
     _currentUser = newUser;
-    notifyListeners();
+    // notifyListeners();
   }
 
   List<EventModel> getAllCompanyEvents() {
@@ -32,6 +32,9 @@ class UserProvider extends ChangeNotifier {
 
   List<EventModel> getcurrentUserEvents() {
     List<EventModel> allCompanyEvents = [];
+    if (_currentUser == null) {
+      return [];
+    }
 
     _companyEventsMap.forEach((companyId, eventsList) {
       if (_currentUser!.uid == companyId &&

@@ -37,6 +37,7 @@ class _RegisterMainState extends State<RegisterMain> {
       speed: 0.0,
       speedAccuracy: 0.0);
   String _currentAddress = "";
+  String adImage = "";
 
   void _openDrawer() {
     _scaffoldKey.currentState?.openEndDrawer();
@@ -54,6 +55,7 @@ class _RegisterMainState extends State<RegisterMain> {
   late TextEditingController civicoController;
   late TextEditingController cityController;
   late TextEditingController provinceController;
+  late TextEditingController capController;
   late TextEditingController mobileController;
   late TextEditingController emailController;
   late TextEditingController siteController;
@@ -75,6 +77,7 @@ class _RegisterMainState extends State<RegisterMain> {
     civicoController = TextEditingController();
     cityController = TextEditingController();
     provinceController = TextEditingController();
+    capController = TextEditingController();
     mobileController = TextEditingController();
     emailController = TextEditingController();
     siteController = TextEditingController();
@@ -86,6 +89,8 @@ class _RegisterMainState extends State<RegisterMain> {
   }
 
   void _getUserLocation() async {
+    adImage = await RegisterController().getAdImage(context);
+    print(adImage);
     LocationPermission permission = await Geolocator.requestPermission();
     if (permission == LocationPermission.whileInUse ||
         permission == LocationPermission.always) {
@@ -133,6 +138,7 @@ class _RegisterMainState extends State<RegisterMain> {
     civicoController.dispose();
     cityController.dispose();
     provinceController.dispose();
+    capController.dispose();
     mobileController.dispose();
     emailController.dispose();
     siteController.dispose();
@@ -153,6 +159,7 @@ class _RegisterMainState extends State<RegisterMain> {
     civicoController.text = '';
     cityController.text = '';
     provinceController.text = '';
+    capController.text = '';
     mobileController.text = '';
     emailController.text = '';
     siteController.text = '';
@@ -161,6 +168,24 @@ class _RegisterMainState extends State<RegisterMain> {
     passwordController.text = '';
     confirmPasswordController.text = '';
     pickedImage = null;
+  }
+
+  bool isStringDigitsAndLength(String input, int length) {
+    if (input.length != length) {
+      return false;
+    }
+
+    for (int i = 0; i < input.length; i++) {
+      if (!isDigit(input[i])) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  bool isDigit(String input) {
+    return int.tryParse(input) != null;
   }
 
   Future<void> registerUser() async {
@@ -173,14 +198,14 @@ class _RegisterMainState extends State<RegisterMain> {
     String civico = civicoController.text.trim();
     String city = cityController.text.trim();
     String province = provinceController.text.trim();
+    String cap = capController.text.trim();
     String mobile = mobileController.text.trim();
     String email = emailController.text.trim();
     String site = siteController.text.trim();
     String cf = cfController.text.trim();
     String password = passwordController.text;
     String confirmPassword = confirmPasswordController.text;
-    String image =
-        'https://firebasestorage.googleapis.com/v0/b/uperitivo-b5e06.appspot.com/o/users_images%2Fplaceholder_register_image.png?alt=media&token=18faa3b5-3a63-4bb5-8bb4-ddc9aeb8492b';
+    String image = adImage;
 
     List<String> requiredFields = [];
 
@@ -206,6 +231,7 @@ class _RegisterMainState extends State<RegisterMain> {
         civico,
         city,
         province,
+        cap,
         mobile,
         email,
         password,
@@ -216,6 +242,12 @@ class _RegisterMainState extends State<RegisterMain> {
     if (password != confirmPassword) {
       if (mounted) {
         showErrorSnackBar(context, "Password, Confirm Password not matched!");
+      }
+      return;
+    }
+    if (!isStringDigitsAndLength(cap, 11) && secondButtonClicked) {
+      if (mounted) {
+        showErrorSnackBar(context, "P. IVA must be valid(11 digits)");
       }
       return;
     }
@@ -244,6 +276,7 @@ class _RegisterMainState extends State<RegisterMain> {
         civico: civico,
         city: city,
         province: province,
+        cap: cap,
         mobile: mobile,
         email: email,
         site: site,
@@ -287,6 +320,7 @@ class _RegisterMainState extends State<RegisterMain> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: false,
       key: _scaffoldKey,
       drawerEnableOpenDragGesture: false,
       body: Column(
@@ -345,18 +379,18 @@ class _RegisterMainState extends State<RegisterMain> {
                                 vertical: 12,
                                 horizontal: 24,
                               ),
-                                child:FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    'Privato',
-                                    maxLines: 1,
-                                    style: TextStyle(
-                                      overflow: TextOverflow.ellipsis,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  'Privato',
+                                  maxLines: 1,
+                                  style: TextStyle(
+                                    overflow: TextOverflow.ellipsis,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
+                              ),
                             ),
                           ),
                         ),
@@ -388,7 +422,7 @@ class _RegisterMainState extends State<RegisterMain> {
                                 vertical: 12,
                                 horizontal: 24,
                               ),
-                              child:FittedBox(
+                              child: FittedBox(
                                 fit: BoxFit.scaleDown,
                                 child: Text(
                                   'Esercente',
@@ -406,8 +440,10 @@ class _RegisterMainState extends State<RegisterMain> {
                       ],
                     ),
                   ),
-                  if (!firstButtonClicked && !secondButtonClicked)
-                    Image.asset('assets/images/placeholder_register_image.png'),
+                  if (!firstButtonClicked &&
+                      !secondButtonClicked &&
+                      adImage.isNotEmpty)
+                    Image.network(adImage),
                   if (firstButtonClicked || secondButtonClicked)
                     const Padding(
                       padding: EdgeInsets.only(left: 16),
@@ -440,9 +476,13 @@ class _RegisterMainState extends State<RegisterMain> {
                           ),
                         const SizedBox(height: 16),
                         if (secondButtonClicked)
-                          CustomTextField(
-                            labelText: 'Tipologia di locale',
+                          // CustomTextField(
+                          //   labelText: 'Tipologia di locale',
+                          //   controller: typeOfActivityController,
+                          // ),
+                          DropdownWidget(
                             controller: typeOfActivityController,
+                            defaultLabelText: 'Tipologia di locale',
                           ),
                         const SizedBox(height: 16),
                         if (firstButtonClicked)
@@ -450,7 +490,7 @@ class _RegisterMainState extends State<RegisterMain> {
                             children: [
                               Expanded(
                                 child: CustomTextField(
-                                  labelText: 'Name*',
+                                  labelText: 'Nome*',
                                   controller: nameController,
                                 ),
                               ),
@@ -487,6 +527,7 @@ class _RegisterMainState extends State<RegisterMain> {
                         const SizedBox(height: 16),
                         if (firstButtonClicked || secondButtonClicked)
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Expanded(
                                 flex: 7,
@@ -495,7 +536,19 @@ class _RegisterMainState extends State<RegisterMain> {
                                   controller: cityController,
                                 ),
                               ),
-                              const SizedBox(width: 16),
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              Expanded(
+                                flex: 3,
+                                child: CustomTextField(
+                                  labelText: 'CAP*',
+                                  controller: capController,
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 10,
+                              ),
                               Expanded(
                                 flex: 3,
                                 child: CustomTextField(
@@ -540,8 +593,9 @@ class _RegisterMainState extends State<RegisterMain> {
                         const SizedBox(height: 16),
                         if (secondButtonClicked)
                           CustomTextField(
-                            labelText: 'P. IVA / C.F.*',
+                            labelText: 'P. IVA*',
                             controller: cfController,
+                            isNumbers: true,
                           ),
                         const SizedBox(height: 16),
                         if (firstButtonClicked || secondButtonClicked)
@@ -619,20 +673,24 @@ class _RegisterMainState extends State<RegisterMain> {
 class CustomTextField extends StatelessWidget {
   final String labelText;
   final TextEditingController controller;
-  final obscureText;
+  final bool obscureText;
+  final bool isNumbers;
 
   const CustomTextField({
     Key? key,
     required this.labelText,
     required this.controller,
     this.obscureText = false,
+    this.isNumbers = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return TextField(
       obscureText: obscureText,
+      keyboardType: isNumbers ? TextInputType.number : null,
       controller: controller,
+      maxLength: isNumbers ? 11 : null,
       cursorColor: Colors.black,
       decoration: InputDecoration(
         labelText: labelText,
@@ -654,6 +712,111 @@ class CustomTextField extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class DropdownWidget extends StatefulWidget {
+  final TextEditingController controller;
+  final String defaultLabelText;
+
+  const DropdownWidget({
+    super.key,
+    required this.controller,
+    required this.defaultLabelText,
+  });
+
+  @override
+  State<DropdownWidget> createState() => _DropdownWidgetState();
+}
+
+class _DropdownWidgetState extends State<DropdownWidget> {
+  List<String> options = [
+    'Bar',
+    'Birreria',
+    'Enoteca',
+    'Osteria',
+    'Wine bar',
+    'altro*'
+  ];
+  String selectedOption = 'Bar';
+  TextEditingController txtController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: DropdownButtonFormField<String>(
+            value: selectedOption,
+            items: options.map((String option) {
+              return DropdownMenuItem<String>(
+                value: option,
+                child: Text(option),
+              );
+            }).toList(),
+            onChanged: (String? value) {
+              setState(() {
+                selectedOption = value!;
+                widget.controller.text = value;
+              });
+            },
+            decoration: InputDecoration(
+              labelText: widget.defaultLabelText,
+              labelStyle: const TextStyle(
+                color: Color(0xFF7E84A3),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+                borderSide: const BorderSide(
+                  color: Color(0xFF707070),
+                  width: 1.0,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+                borderSide: const BorderSide(
+                  color: Color(0xFF707070),
+                  width: 1.0,
+                ),
+              ),
+            ),
+          ),
+        ),
+        if (selectedOption == "altro*")
+          Column(
+            children: [
+              const SizedBox(height: 20),
+              TextField(
+                controller: txtController,
+                onChanged: (value) {
+                  widget.controller.text = value;
+                },
+                decoration: InputDecoration(
+                    labelText: 'digitare il tipo di evento personalizzato',
+                    labelStyle: const TextStyle(
+                      color: Color(0xFF7E84A3),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF707070),
+                        width: 1.0,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF707070),
+                        width: 1.0,
+                      ),
+                    )),
+              ),
+            ],
+          ),
+      ],
     );
   }
 }

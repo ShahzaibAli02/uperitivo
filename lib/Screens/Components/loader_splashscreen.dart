@@ -1,20 +1,14 @@
 import 'package:flutter/material.dart';
 
 class LoaderSplashScreen extends StatelessWidget {
+  const LoaderSplashScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(color: Colors.white),
-        child: const Center(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(
-                color: Colors.orange,
-              ),
-            ],
-          ),
+    return const Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(
+          color: Colors.orange,
         ),
       ),
     );

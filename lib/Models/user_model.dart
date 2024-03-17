@@ -11,6 +11,7 @@ class UserModel {
   final String civico;
   final String city;
   final String province;
+  final String cap;
   final String mobile;
   final String email;
   final String site;
@@ -33,6 +34,7 @@ class UserModel {
     required this.civico,
     required this.city,
     required this.province,
+    required this.cap,
     required this.mobile,
     required this.email,
     required this.site,

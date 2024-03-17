@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:uperitivo/Utils/helpers.dart';
+import 'package:uperitivo/Utils/helpers.dart'; // Make sure this import path is correct for your formatDate function
 
 class EventDay extends StatefulWidget {
-  final Function(
-          String selectedDate, int selectedDay, bool isEventoUnicoSelected)
-      onSelectionChanged;
+  final Function(List<int> selectedDays, String selectedDate,
+      bool isEventoUnicoSelected) onSelectionChanged;
+
   const EventDay({Key? key, required this.onSelectionChanged})
       : super(key: key);
 
@@ -14,7 +14,7 @@ class EventDay extends StatefulWidget {
 
 class _EventDayState extends State<EventDay> {
   String selectedDate = '';
-  int selectedDay = 1;
+  List<int> selectedDays = [];
   bool isEventoUnicoSelected = true;
 
   @override
@@ -32,18 +32,21 @@ class _EventDayState extends State<EventDay> {
           Row(
             children: [
               Radio(
-                value: 0,
-                groupValue: isEventoUnicoSelected ? 0 : null,
+                value: true,
+                groupValue: isEventoUnicoSelected,
+                onChanged: (bool? value) {
+                  if (value != null) {
+                    setState(() {
+                      isEventoUnicoSelected = value;
+                      selectedDays
+                          .clear(); // Clear days when "Evento unico" is selected
+                    });
+                    widget.onSelectionChanged(
+                        selectedDays, selectedDate, isEventoUnicoSelected);
+                  }
+                },
                 fillColor: MaterialStateColor.resolveWith(
                     (states) => const Color(0xFFEC6500)),
-                onChanged: (value) {
-                  setState(() {
-                    selectedDay = value as int;
-                    isEventoUnicoSelected = true;
-                  });
-                  widget.onSelectionChanged(
-                      selectedDate, selectedDay, isEventoUnicoSelected);
-                },
               ),
               const Text('Evento unico'),
             ],
@@ -61,15 +64,10 @@ class _EventDayState extends State<EventDay> {
             ],
           ),
           const Text('Fino al (compreso):'),
-          const SizedBox(
-            height: 10,
-          ),
+          const SizedBox(height: 10),
           Row(
             children: [
-              const Icon(
-                Icons.calendar_today,
-                color: Color(0xFFEC6500),
-              ),
+              const Icon(Icons.calendar_today, color: Color(0xFFEC6500)),
               const SizedBox(width: 10.0),
               InkWell(
                 onTap: () async {
@@ -94,15 +92,14 @@ class _EventDayState extends State<EventDay> {
 
                   if (pickedDate != null) {
                     setState(() {
-                      selectedDate = formatDate(pickedDate);
+                      selectedDate = formatDate(
+                          pickedDate); // Make sure the formatDate function exists and works as expected
                     });
                     widget.onSelectionChanged(
-                        selectedDate, selectedDay, isEventoUnicoSelected);
+                        selectedDays, selectedDate, isEventoUnicoSelected);
                   }
                 },
-                child: Text(
-                  selectedDate.isEmpty ? 'GG/MM/AAAA' : selectedDate,
-                ),
+                child: Text(selectedDate.isEmpty ? 'GG/MM/AAAA' : selectedDate),
               ),
             ],
           ),
@@ -114,18 +111,22 @@ class _EventDayState extends State<EventDay> {
   Widget buildDayRow(int value, String label) {
     return Row(
       children: [
-        Radio(
-          value: value,
-          groupValue: isEventoUnicoSelected ? null : selectedDay,
-          fillColor: MaterialStateColor.resolveWith(
-              (states) => const Color(0xFFEC6500)),
-          onChanged: (value) {
+        Checkbox(
+          value: selectedDays.contains(value),
+          onChanged: (bool? selected) {
             setState(() {
-              selectedDay = value as int;
-              isEventoUnicoSelected = false;
+              if (selected == true) {
+                if (!selectedDays.contains(value)) {
+                  selectedDays.add(value);
+                }
+              } else {
+                selectedDays.remove(value);
+              }
+              isEventoUnicoSelected =
+                  false; // Automatically deselect "Evento unico" when any day is selected
             });
             widget.onSelectionChanged(
-                selectedDate, selectedDay, isEventoUnicoSelected);
+                selectedDays, selectedDate, isEventoUnicoSelected);
           },
         ),
         Text(label),

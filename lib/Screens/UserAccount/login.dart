@@ -11,7 +11,11 @@ import 'package:uperitivo/Screens/bottom_navigation.dart';
 import 'package:uperitivo/Utils/helpers.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  final bool? isFromInside;
+  final VoidCallback? onPop;
+
+  const LoginScreen({Key? key, this.isFromInside, this.onPop})
+      : super(key: key);
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -28,6 +32,8 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
     usernameController = TextEditingController();
     passwordController = TextEditingController();
+    // usernameController.text = "user@gmail.com";
+    // passwordController.text = "123456";
   }
 
   void _openDrawer() {
@@ -38,6 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
+      resizeToAvoidBottomInset: false,
       drawerEnableOpenDragGesture: false,
       body: Column(
         children: [
@@ -67,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CTBTextField(
-                      hintText: "User name",
+                      hintText: "e-mail",
                       controller: usernameController,
                     ),
                     const SizedBox(height: 16),
@@ -140,9 +147,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                           .getAllEventsForCompanies(context);
                                     }
                                     if (mounted) {
-                                      getScreen(context,
-                                          () => const BottomNavigation(),
-                                          removePreviousScreens: true);
+                                      if (widget.isFromInside != null) {
+                                        if (widget.onPop != null) {
+                                          widget.onPop!();
+                                        }
+                                        Navigator.pop(context);
+                                      } else {
+                                        getScreen(context,
+                                            () => const BottomNavigation(),
+                                            removePreviousScreens: true);
+                                      }
                                     }
                                   } else {
                                     if (mounted) {

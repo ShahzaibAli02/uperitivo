@@ -20,10 +20,11 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   UserModel? user;
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
-  String? _selectedValue = null;
+  String? _selectedValue;
   String orderBy = "data";
   double userLatitude = 0.0;
   double userLongitude = 0.0;
+  String query = "";
 
   @override
   void initState() {
@@ -37,10 +38,9 @@ class _HomeScreenState extends State<HomeScreen> {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
-      setState(() {
-        userLatitude = position.latitude;
-        userLongitude = position.longitude;
-      });
+      userLatitude = position.latitude;
+      userLongitude = position.longitude;
+      setState(() {});
     } catch (e) {
       print("Error getting user location: $e");
     }
@@ -83,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const Divider(),
                 ListTile(
                   title: const Center(
-                      child: Text('? Ordina per ordine alfabetico')),
+                      child: Text('> Ordina per ordine alfabetico')),
                   onTap: () {
                     Navigator.pop(context);
                     setState(() {
@@ -108,42 +108,63 @@ class _HomeScreenState extends State<HomeScreen> {
             onDrawerTap: () {
               openDrawer();
             },
+            showSearch: true,
+            onSearchChanged: (value) {
+              query = value;
+              setState(() {});
+            },
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  Radio(
-                    value: 'All',
-                    groupValue: _selectedValue,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedValue = value!;
-                      });
-                    },
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Radio(
+                        value: 'All',
+                        groupValue: _selectedValue,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedValue = value!;
+                          });
+                        },
+                      ),
+                      const Text('Tutti'),
+                    ],
                   ),
-                  const Text('All'),
-                  Radio(
-                    value: 'recurring',
-                    groupValue: _selectedValue,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedValue = value!;
-                      });
-                    },
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Radio(
+                        value: 'recurring',
+                        groupValue: _selectedValue,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedValue = value!;
+                          });
+                        },
+                      ),
+                      const Text('Sempre'),
+                    ],
                   ),
-                  const Text('Sempre'),
-                  Radio(
-                    value: 'special',
-                    groupValue: _selectedValue,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedValue = value!;
-                      });
-                    },
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Radio(
+                        value: 'special',
+                        groupValue: _selectedValue,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedValue = value!;
+                          });
+                        },
+                      ),
+                      const Text('Speciale'),
+                    ],
                   ),
-                  const Text('Speciale'),
                 ],
               ),
               Row(
@@ -163,7 +184,16 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Consumer<UserProvider>(
               builder: (context, userProvider, child) {
                 List<EventModel> events = userProvider.getAllCompanyEvents();
-                print(events.length);
+
+                List<EventModel> filteredList = events
+                    .where((event) =>
+                        event.city.toLowerCase().contains(query.toLowerCase()))
+                    .toList();
+
+                if (query.isNotEmpty) {
+                  events = filteredList;
+                }
+
                 if (_selectedValue == "recurring") {
                   events = events
                       .where((event) => event.eventType == "recurring")
@@ -175,9 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
 
                 if (orderBy == "distance") {
-                  // Sort events by distance based on longitude and latitude
                   events.sort((a, b) {
-                    // Replace 'a' and 'b' with the actual names of your latitude and longitude fields
                     double distanceA = calculateDistance(
                         a.latitude, a.longitude, userLatitude, userLongitude);
                     double distanceB = calculateDistance(
@@ -186,7 +214,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     return distanceA.compareTo(distanceB);
                   });
                 } else if (orderBy == "alphabet") {
-                  // Sort events by eventName in ascending order
                   events.sort((a, b) => a.eventName.compareTo(b.eventName));
                 }
 
@@ -196,11 +223,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         itemCount: events.length,
                         itemBuilder: (context, index) {
                           EventModel event = events[index];
-                          return SizedBox(
-                            height: 500,
-                            child: EventCard(
-                              event: event,
-                            ),
+
+                          return Column(
+                            children: [
+                              EventCard(
+                                event: event,
+                              ),
+                              const SizedBox(
+                                height: 20,
+                              ),
+                            ],
                           );
                         },
                       )

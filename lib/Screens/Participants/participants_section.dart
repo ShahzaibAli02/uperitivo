@@ -4,13 +4,14 @@ import 'package:uperitivo/Models/event_model.dart';
 import 'package:uperitivo/Models/user_model.dart';
 import 'package:uperitivo/Screens/Components/drawer_screen.dart';
 import 'package:uperitivo/Screens/Components/header.dart';
+import 'package:uperitivo/Screens/UserAccount/login.dart';
 import 'package:uperitivo/Utils/helpers.dart';
 
 class ParticipantsScreen extends StatefulWidget {
   const ParticipantsScreen({super.key});
 
   @override
-  _ParticipantsScreenState createState() => _ParticipantsScreenState();
+  State<ParticipantsScreen> createState() => _ParticipantsScreenState();
 }
 
 class _ParticipantsScreenState extends State<ParticipantsScreen> {
@@ -24,6 +25,8 @@ class _ParticipantsScreenState extends State<ParticipantsScreen> {
   bool isCheckingUserStatus = false;
   bool joinRequest = false;
   UserModel? user;
+  String query = "";
+  List<EventModel> filteredList = [];
 
   void _openDrawer() {
     _scaffoldKey.currentState?.openEndDrawer();
@@ -98,165 +101,217 @@ class _ParticipantsScreenState extends State<ParticipantsScreen> {
             onDrawerTap: () {
               _openDrawer();
             },
+            showSearch: true,
+            onSearchChanged: (value) {
+              query = value;
+              filteredList = events!
+                  .where((event) =>
+                      event.city.toLowerCase().contains(query.toLowerCase()))
+                  .toList();
+
+              if (filteredList.isNotEmpty) {
+                selectedEvent = filteredList[0];
+              }
+              setState(() {});
+            },
           ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (events != null && events!.isNotEmpty)
-                      Column(
-                        children: [
-                          DropdownButton<EventModel>(
-                            value: selectedEvent,
-                            onChanged: (EventModel? newValue) {
-                              setState(() {
-                                selectedEvent = newValue;
-                                checkIfUserInEvent();
-                                getUsersByIds(
-                                    selectedEvent?.participants ?? []);
-                              });
-                            },
-                            items: events!.map<DropdownMenuItem<EventModel>>(
-                              (EventModel event) {
-                                return DropdownMenuItem<EventModel>(
-                                  value: event,
-                                  child: Text(event.eventName),
-                                );
-                              },
-                            ).toList(),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                selectedEvent!.companyName,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20,
-                                    color: Color(0xff354052)),
-                              ),
-                              Row(
-                                children: [
-                                  const Icon(Icons.people),
-                                  const SizedBox(width: 5),
-                                  Text(
-                                    "${selectedEvent!.participants.length}",
-                                    style: const TextStyle(fontSize: 20),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Text(
-                                selectedEvent!.category,
-                                style: const TextStyle(
-                                    color: Color(0xff354052), fontSize: 18),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Text(
-                                selectedEvent!.eventName,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 30,
-                                    color: Color(0xff354052)),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          if (_participantsList.isEmpty && !isGettingUsers)
-                            const Column(
+          if (query.isNotEmpty && filteredList.isEmpty)
+            const Expanded(
+                child: Center(
+              child: Text("Nessun evento trovato per questa città"),
+            ))
+          else if (query.isEmpty)
+            const Expanded(
+                child: Center(
+              child: Text(
+                  "Inserisci la tua città per cercare i partecipanti all'evento"),
+            ))
+          else
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (events != null && events!.isNotEmpty)
+                        Column(
+                          children: [
+                            Text(
+                                "Risultato abbinato alla città : ${selectedEvent!.city}"),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                SizedBox(
-                                  height: 100,
+                                Text(
+                                  selectedEvent!.companyName,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                      color: Color(0xff354052)),
                                 ),
-                                Center(
-                                  child: Text("No Participants for this event"),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.people),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      "${selectedEvent!.participants.length}",
+                                      style: const TextStyle(fontSize: 20),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                          ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: _participantsList.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              return Column(
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Text(
+                                  selectedEvent!.category,
+                                  style: const TextStyle(
+                                      color: Color(0xff354052), fontSize: 18),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Text(
+                                  selectedEvent!.eventName,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 30,
+                                      color: Color(0xff354052)),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            if (_participantsList.isEmpty && !isGettingUsers)
+                              const Column(
                                 children: [
-                                  ListTile(
-                                    leading: CircleAvatar(
-                                      backgroundImage: NetworkImage(
-                                          _participantsList[index].image),
+                                  SizedBox(
+                                    height: 100,
+                                  ),
+                                  Center(
+                                    child:
+                                        Text("No Participants for this event"),
+                                  ),
+                                ],
+                              ),
+                            ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: _participantsList.length,
+                              itemBuilder: (BuildContext context, int index) {
+                                return Column(
+                                  children: [
+                                    ListTile(
+                                      leading: CircleAvatar(
+                                        backgroundImage: NetworkImage(
+                                            _participantsList[index].image),
+                                      ),
+                                      title: Text(
+                                        _participantsList[index].nickname,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                      ),
                                     ),
-                                    title: Text(
-                                      "${_participantsList[index].nickname} ${_participantsList[index].name}",
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold),
+                                    const Divider()
+                                  ],
+                                );
+                              },
+                            ),
+                            if (user == null)
+                              Center(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    getScreen(
+                                        context,
+                                        () => LoginScreen(
+                                              isFromInside: true,
+                                              onPop: () {
+                                                user = getCurrentUser(context);
+                                                setState(() {});
+                                              },
+                                            ));
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF5887DC),
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                   ),
-                                  const Divider()
-                                ],
-                              );
-                            },
-                          ),
-                          if (user!.userType != "company")
-                            Container(
-                              width: double.infinity,
-                              margin:
-                                  const EdgeInsets.symmetric(horizontal: 20),
-                              child: ElevatedButton(
-                                onPressed: _isUserInEvent ||
-                                        isCheckingUserStatus ||
-                                        !isEventOpen(
-                                            selectedEvent!.eventType,
-                                            selectedEvent!.eventTime,
-                                            selectedEvent!.untilDate,
-                                            selectedEvent!.eventDate)
-                                    ? null
-                                    : joinEvent,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.green,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10.0),
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: 12,
+                                      horizontal: 24,
+                                    ),
+                                    child: Text(
+                                      'Accedi per partecipare',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
                                   ),
                                 ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: joinRequest || isCheckingUserStatus
-                                      ? const Center(
-                                          child: CircularProgressIndicator(
-                                            color: Colors.white,
+                              )
+                            else if (user!.userType != "company" &&
+                                isEventOpen(
+                                    selectedEvent!.eventType,
+                                    selectedEvent!.eventTime,
+                                    selectedEvent!.untilDate,
+                                    selectedEvent!.eventDate))
+                              Container(
+                                width: double.infinity,
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 20),
+                                child: ElevatedButton(
+                                  onPressed:
+                                      _isUserInEvent || isCheckingUserStatus
+                                          ? () {}
+                                          : joinEvent,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: _isUserInEvent
+                                        ? Colors.white
+                                        : Colors.green,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10.0),
+                                      side:
+                                          const BorderSide(color: Colors.green),
+                                    ),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: joinRequest || isCheckingUserStatus
+                                        ? const Center(
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                            ),
+                                          )
+                                        : Text(
+                                            _isUserInEvent
+                                                ? 'C6 !'
+                                                : 'Partecipa',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18,
+                                              color: _isUserInEvent
+                                                  ? Colors.green
+                                                  : Colors.white,
+                                            ),
                                           ),
-                                        )
-                                      : Text(
-                                          _isUserInEvent ? 'C6 !' : 'Partecipa',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
-                                            color: Colors.white,
-                                          ),
-                                        ),
+                                  ),
                                 ),
                               ),
-                            ),
-                        ],
-                      )
-                    else
-                      const Text('No events available'),
-                  ],
+                          ],
+                        )
+                      else
+                        const Text('No events available'),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       ),
       endDrawer: const DrawerScreen(),

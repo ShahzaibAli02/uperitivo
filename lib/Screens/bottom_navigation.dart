@@ -3,6 +3,7 @@ import 'package:uperitivo/Screens/Home/home.dart';
 import 'package:uperitivo/Screens/Events/events_screen.dart';
 import 'package:uperitivo/Screens/Participants/participants_section.dart';
 import 'package:uperitivo/Screens/Location/locationScreen.dart';
+
 class BottomNavigation extends StatefulWidget {
   const BottomNavigation({super.key});
 

@@ -29,6 +29,7 @@ class RegisterController {
         'civico': user.civico,
         'city': user.city,
         'province': user.province,
+        'cap': user.cap,
         'mobile': user.mobile,
         'email': user.email,
         'site': user.site,
@@ -86,6 +87,7 @@ class RegisterController {
         civico: userDoc['civico'],
         city: userDoc['city'],
         province: userDoc['province'],
+        cap: userDoc['cap'] ?? "",
         mobile: userDoc['mobile'],
         email: userDoc['email'],
         site: userDoc['site'],
@@ -133,6 +135,7 @@ class RegisterController {
           civico: userDoc['civico'],
           city: userDoc['city'],
           province: userDoc['province'],
+          cap: userDoc['cap'] ?? "",
           mobile: userDoc['mobile'],
           email: userDoc['email'],
           site: userDoc['site'],
@@ -185,7 +188,9 @@ class RegisterController {
             updateCurrentUser(user, context);
           }
         }
-        await getAllEventsForCompanies(context);
+        if (context.mounted) {
+          await getAllEventsForCompanies(context);
+        }
         if (context.mounted) {
           showSuccessSnackBar(context, "Event added to user's events");
         }
@@ -198,7 +203,6 @@ class RegisterController {
     } catch (e) {
       if (context.mounted) {
         showErrorSnackBar(context, 'Error adding event to user\'s events: $e');
-        print('Error adding event to user\'s events: $e');
       }
       rethrow;
     }
@@ -309,7 +313,9 @@ class RegisterController {
         }
       }
     } catch (e) {
-      print(e);
+      if (context.mounted) {
+        showErrorSnackBar(context, "Error while adding rating");
+      }
     }
     return false;
   }
@@ -345,6 +351,7 @@ class RegisterController {
             civico: userDoc['civico'],
             city: userDoc['city'],
             province: userDoc['province'],
+            cap: userDoc["cap"],
             mobile: userDoc['mobile'],
             email: userDoc['email'],
             site: userDoc['site'],
@@ -363,7 +370,6 @@ class RegisterController {
 
       return users;
     } catch (e) {
-      print('Error getting users by IDs: $e');
       return [];
     }
   }
@@ -381,6 +387,65 @@ class RegisterController {
         showErrorSnackBar(context, 'Error sending password reset email: $e');
       }
       return false;
+    }
+  }
+
+  Future<String> getAdImage(BuildContext context) async {
+    try {
+      QuerySnapshot usersSnapshot = await _firestore
+          .collection('users')
+          .where('userType', isEqualTo: 'adminAsset')
+          .get();
+      return usersSnapshot.docs[0]["image_source"];
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error getting ad image source: $e');
+      }
+      rethrow;
+    }
+  }
+
+  Future<List<String>> removeEvent(String eventId, BuildContext context) async {
+    User? currentUser = _auth.currentUser;
+    List<String> participants = [];
+
+    try {
+      QuerySnapshot usersSnapshot = await _firestore.collection('users').get();
+
+      for (QueryDocumentSnapshot userDoc in usersSnapshot.docs) {
+        List<dynamic>? userEvents = userDoc['events'];
+
+        if (userEvents != null) {
+          for (int i = 0; i < userEvents.length; i++) {
+            if (userEvents[i]['eventId'] == eventId) {
+              participants = List<String>.from(userEvents[i]['participants']);
+
+              participants.remove(currentUser!.uid);
+
+              userEvents[i]['participants'] = participants;
+
+              await _firestore.collection('users').doc(userDoc.id).update({
+                'events': userEvents,
+              });
+
+              break;
+            }
+          }
+        }
+      }
+      if (context.mounted) {
+        await getAllEventsForCompanies(context);
+      }
+      if (context.mounted) {
+        showSuccessSnackBar(context, 'Removed user from event participants');
+      }
+      return participants;
+    } catch (e) {
+      if (context.mounted) {
+        showErrorSnackBar(
+            context, 'Error removing user from event participants: $e');
+      }
+      return participants;
     }
   }
 }

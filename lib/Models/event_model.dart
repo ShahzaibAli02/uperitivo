@@ -7,13 +7,14 @@ class EventModel {
   final String eventTime;
   final String eventType;
   final String category;
+  final String city;
   final String categoryColor;
   final String image;
   List<String> participants;
   final String untilDate;
-  final String day;
+  final List day;
   final bool recurring;
-  Map<String, int> rating; // Updated to Map<String, int>
+  Map<String, int> rating;
   final String companyName;
   final String address;
   final double longitude;
@@ -28,6 +29,7 @@ class EventModel {
     required this.eventTime,
     required this.eventType,
     required this.category,
+    required this.city,
     required this.categoryColor,
     required this.image,
     required this.participants,
@@ -51,6 +53,7 @@ class EventModel {
       'eventTime': eventTime,
       'eventType': eventType,
       'category': category,
+      'city': city,
       'categoryColor': categoryColor,
       'image': image,
       'participants': participants,
@@ -75,14 +78,16 @@ class EventModel {
       eventTime: json['eventTime'],
       eventType: json['eventType'],
       category: json['category'],
+      city: json['city'],
       categoryColor: json['categoryColor'],
       image: json['image'],
       participants: List<String>.from(json['participants']),
       untilDate: json['untilDate'],
-      day: json['day'],
+      day: json['day'].runtimeType.toString() == "String"
+          ? [json['day']]
+          : json['day'],
       recurring: json['recurring'],
-      rating: Map<String, int>.from(
-          json['rating']), // Updated to use Map<String, int>
+      rating: Map<String, int>.from(json['rating']),
       companyName: json['companyName'],
       address: json['address'],
       longitude: json['longitude'],

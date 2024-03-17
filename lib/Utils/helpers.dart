@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 import 'dart:math';
 
 double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-  const double earthRadius = 6371; // Earth's radius in kilometers
+  const double earthRadius = 6371;
 
   double radians(double degree) {
     return degree * (pi / 180.0);
@@ -53,27 +53,27 @@ void getScreen(
   bool removePreviousScreens = false,
   bool pushReplacement = false,
 }) {
+  PageRouteBuilder buildPageRoute(Widget child) {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => child,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: animation,
+          child: child,
+        );
+      },
+    );
+  }
+
   if (removePreviousScreens) {
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => screenBuilder()),
+      buildPageRoute(screenBuilder()),
       (Route<dynamic> route) => false,
     );
+  } else if (pushReplacement) {
+    Navigator.of(context).pushReplacement(buildPageRoute(screenBuilder()));
   } else {
-    if (pushReplacement) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (BuildContext context) => screenBuilder(),
-        ),
-      );
-    } else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (BuildContext context) => screenBuilder(),
-        ),
-      );
-    }
+    Navigator.of(context).push(buildPageRoute(screenBuilder()));
   }
 }
 
@@ -113,7 +113,6 @@ List<EventModel>? getCurrentUserEventsList(BuildContext context) {
 }
 
 String formatItalianDate(String inputDate) {
-  print(inputDate);
   DateTime date = DateFormat('dd/MM/yyyy').parse(inputDate);
 
   // Define maps for English to Italian conversion
@@ -182,11 +181,8 @@ bool isEventDateTimeValid(String eventDate, String eventTime) {
   int minute = int.parse(timeParts[1]);
 
   DateTime eventDateTime = DateTime(year, month, day, hour, minute);
-  print(eventDateTime);
+
   DateTime currentDateTime = DateTime.now();
-  print(currentDateTime);
-  print(eventDateTime.isBefore(currentDateTime) ||
-      eventDateTime.isAtSameMomentAs(currentDateTime));
   return !(eventDateTime.isBefore(currentDateTime) ||
       eventDateTime.isAtSameMomentAs(currentDateTime));
 }

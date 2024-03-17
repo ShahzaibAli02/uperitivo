@@ -21,18 +21,19 @@ class _CategoryState extends State<Category> {
         border: Border.all(color: const Color(0xFFD5D7E3)),
         borderRadius: BorderRadius.circular(15.0),
       ),
-      padding: const EdgeInsets.all(10.0),
+      padding: const EdgeInsets.all(5.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Column(
             children: [
-              buildCategoryRow(1, 'Vino', Colors.red),
-              buildCategoryRow(2, 'Spritz', Colors.blue),
-              buildCategoryRow(3, 'Bollicine', Colors.green),
-              buildCategoryRow(4, 'Spirit', Colors.orange),
-              buildCategoryRow(5, 'Analcolico', Colors.purple),
-              buildCategoryRow(6, 'Street Food', Colors.brown),
+              buildCategoryRow(1, 'Vino', Colors.brown),
+              buildCategoryRow(2, 'Spritz', Colors.orange),
+              buildCategoryRow(3, 'Bollicine', Colors.yellow),
+              buildCategoryRow(4, 'Superalcolici', Colors.blue),
+              buildCategoryRow(5, 'Analcolico', Colors.green),
+              buildCategoryRow(6, 'Street Food', Colors.amber),
+              buildCategoryRow(7, 'Vegano', Colors.greenAccent),
             ],
           ),
         ],
@@ -75,8 +76,7 @@ class _CategoryState extends State<Category> {
 
             // Call the callback function immediately when a value is selected
             if (selectedValue != null) {
-              widget.onCategoryChanged(
-                  label!, getCategoryColor(selectedValue!));
+              widget.onCategoryChanged(label, getCategoryColor(selectedValue!));
             }
           },
         ),

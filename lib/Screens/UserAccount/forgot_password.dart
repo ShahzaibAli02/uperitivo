@@ -5,7 +5,7 @@ import 'package:uperitivo/Screens/Components/header.dart';
 import 'package:uperitivo/Utils/helpers.dart';
 
 class ForgotPasswordScreen extends StatelessWidget {
-  ForgotPasswordScreen({super.key});
+  ForgotPasswordScreen({Key? key}) : super(key: key);
   GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
   TextEditingController emailController = TextEditingController();
 
@@ -26,48 +26,59 @@ class ForgotPasswordScreen extends StatelessWidget {
               _openDrawer();
             },
           ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Enter your email:',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                const SizedBox(
+                  height: 100,
+                ),
+                const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Flexible(
+                      child: Center(
+                        child: Text(
+                          "Inserisci qui l'email usata in fase di registrazione:",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: emailController,
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    border: OutlineInputBorder(),
                   ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: emailController,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      border: OutlineInputBorder(),
-                    ),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xff5887DC),
+                    foregroundColor: Colors.white,
                   ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xff5887DC),
-                        foregroundColor: Colors.white),
-                    onPressed: () {
-                      String email = emailController.text.trim();
-                      if (email.isNotEmpty) {
-                        RegisterController()
-                            .sendPasswordResetEmail(email, context);
-                      } else {
-                        showErrorSnackBar(
-                            context, "Enter your registered email");
-                      }
-                    },
-                    child: const Text('Submit'),
-                  ),
-                ],
-              ),
+                  onPressed: () {
+                    String email = emailController.text.trim();
+                    if (email.isNotEmpty) {
+                      RegisterController()
+                          .sendPasswordResetEmail(email, context);
+                    } else {
+                      showErrorSnackBar(
+                          context, "Inserisci la tua email registrata");
+                    }
+                  },
+                  child: const Text('Invia'),
+                ),
+              ],
             ),
-          ),
+          )
         ],
       ),
       endDrawer: const DrawerScreen(),

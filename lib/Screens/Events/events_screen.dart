@@ -20,10 +20,11 @@ class EventsScreen extends StatefulWidget {
 class _EventsScreenState extends State<EventsScreen> {
   UserModel? user;
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
-  String? _selectedValue = null;
+  String? _selectedValue;
   String orderBy = "data";
   double userLatitude = 0.0;
   double userLongitude = 0.0;
+  String query = "";
 
   @override
   void initState() {
@@ -108,6 +109,11 @@ class _EventsScreenState extends State<EventsScreen> {
             onDrawerTap: () {
               openDrawer();
             },
+            showSearch: true,
+            onSearchChanged: (value) {
+              query = value;
+              setState(() {});
+            },
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -163,6 +169,14 @@ class _EventsScreenState extends State<EventsScreen> {
             child: Consumer<UserProvider>(
               builder: (context, userProvider, child) {
                 List<EventModel> events = userProvider.getcurrentUserEvents();
+                List<EventModel> filteredList = events
+                    .where((event) =>
+                        event.city.toLowerCase().contains(query.toLowerCase()))
+                    .toList();
+
+                if (query.isNotEmpty) {
+                  events = filteredList;
+                }
 
                 if (_selectedValue == "recurring") {
                   events = events
@@ -204,10 +218,12 @@ class _EventsScreenState extends State<EventsScreen> {
                           );
                         },
                       )
-                    : const Center(
+                    : Center(
                         child: Text(
-                          'No events to show',
-                          style: TextStyle(fontSize: 18),
+                          userProvider.currentUser == null
+                              ? 'Accesso richiesto'
+                              : 'No events to show',
+                          style: const TextStyle(fontSize: 18),
                         ),
                       );
               },
