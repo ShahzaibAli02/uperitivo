@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
@@ -171,14 +173,14 @@ class RegisterController {
     }
   }
 
-  Future<void> addEventToUserEvents(
+  Future<bool> addEventToUserEvents(
       EventModel event, BuildContext context) async {
     try {
       User? currentUser = _auth.currentUser;
 
       if (currentUser != null) {
         String userId = currentUser.uid;
-
+        log(userId);
         await _firestore.collection('users').doc(userId).update({
           'events': FieldValue.arrayUnion([event.toJson()]),
         });
@@ -194,6 +196,7 @@ class RegisterController {
         if (context.mounted) {
           showSuccessSnackBar(context, "Event added to user's events");
         }
+        return true;
       } else {
         if (context.mounted) {
           showErrorSnackBar(context,
@@ -206,6 +209,103 @@ class RegisterController {
       }
       rethrow;
     }
+    return false;
+  }
+
+  Future<bool> editEventInUserEvents(
+      EventModel event, BuildContext context) async {
+    try {
+      User? currentUser = _auth.currentUser;
+
+      if (currentUser != null) {
+        String userId = currentUser.uid;
+        log(userId);
+        _firestore.collection('users').doc(currentUser.uid).get().then((doc) {
+          final List<dynamic> list = doc.data()?['events'];
+          final int index =
+              list.indexWhere((map) => map['eventId'] == event.eventId);
+          if (index != -1) {
+            list.removeAt(index);
+            _firestore
+                .collection('users')
+                .doc(currentUser.uid)
+                .update({'events': list});
+          }
+        });
+        await _firestore.collection('users').doc(userId).update({
+          'events': FieldValue.arrayUnion([event.toJson()]),
+        });
+        UserModel? user = await getSignedInUser();
+        if (user != null && user.events!.isNotEmpty) {
+          if (context.mounted) {
+            updateCurrentUser(user, context);
+          }
+        }
+        if (context.mounted) {
+          await getAllEventsForCompanies(context);
+        }
+        if (context.mounted) {
+          showSuccessSnackBar(context, "Event edited successfully");
+        }
+        return true;
+      } else {
+        if (context.mounted) {
+          showErrorSnackBar(context, 'Error editing event: User not signed in');
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        showErrorSnackBar(context, 'Error editing event: $e');
+      }
+      rethrow;
+    }
+    return false;
+  }
+
+  Future<bool> deleteEventInUserEvents(String eId, BuildContext context) async {
+    try {
+      User? currentUser = _auth.currentUser;
+
+      if (currentUser != null) {
+        // String userId = currentUser.uid;
+
+        _firestore.collection('users').doc(currentUser.uid).get().then((doc) {
+          final List<dynamic> list = doc.data()?['events'];
+          final int index = list.indexWhere((map) => map['eventId'] == eId);
+
+          if (index != -1) {
+            list.removeAt(index);
+            _firestore
+                .collection('users')
+                .doc(currentUser.uid)
+                .update({'events': list});
+          }
+        });
+
+        UserModel? user = await getSignedInUser();
+        if (user != null && user.events!.isNotEmpty) {
+          if (context.mounted) {
+            updateCurrentUser(user, context);
+            await getAllEventsForCompanies(context);
+          }
+        }
+
+        return true;
+      } else {
+        if (context.mounted) {
+          print("e1 deleted");
+          showErrorSnackBar(
+              context, 'Error deleting event: User not signed in');
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        print("e2 deleted");
+        showErrorSnackBar(context, 'Error deleting event: $e');
+      }
+      rethrow;
+    }
+    return false;
   }
 
   Future<void> getAllEventsForCompanies(BuildContext context) async {
@@ -248,6 +348,10 @@ class RegisterController {
       QuerySnapshot usersSnapshot = await _firestore.collection('users').get();
 
       for (QueryDocumentSnapshot userDoc in usersSnapshot.docs) {
+        log(userDoc.data.runtimeType.toString());
+        if (!(userDoc.data() as Map<String, dynamic>).containsKey("events")) {
+          continue;
+        }
         List<dynamic>? userEvents = userDoc['events'];
 
         if (userEvents != null) {

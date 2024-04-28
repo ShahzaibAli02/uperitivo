@@ -1,19 +1,27 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:uperitivo/Controller/user_firebase_controller.dart';
 import 'package:uperitivo/Models/event_model.dart';
-import 'package:uperitivo/Screens/Home/event_detail_screen.dart';
-import 'package:uperitivo/Screens/Home/event_participants.dart';
+import 'package:uperitivo/Models/user_model.dart';
+import 'package:uperitivo/Screens/AddEvent/add_event.dart';
 import 'package:uperitivo/Utils/helpers.dart';
 
 class EventCard extends StatefulWidget {
   final EventModel event;
+  final Function onClick;
+  final UserModel user;
+  final String action;
 
-  const EventCard({super.key, required this.event});
+  const EventCard(
+      {super.key,
+      required this.event,
+      required this.onClick,
+      required this.user,
+      required this.action});
 
   @override
-  _EventCardState createState() => _EventCardState();
+  State<EventCard> createState() => _EventCardState();
 }
 
 class _EventCardState extends State<EventCard>
@@ -49,7 +57,7 @@ class _EventCardState extends State<EventCard>
       ),
       child: InkWell(
         onTap: () {
-          getScreen(context, () => EventDetailScreen(event: widget.event));
+          widget.onClick();
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,12 +82,9 @@ class _EventCardState extends State<EventCard>
                   child: Align(
                     alignment: Alignment.center,
                     child: Center(
-                      // Wrap the Text widget with a Center widget
                       child: Container(
-                        padding: const EdgeInsets.all(
-                            8.0), // Add some padding around the text
-                        color: Colors.black.withOpacity(
-                            0.5), // Semi-transparent black background
+                        padding: const EdgeInsets.all(8.0),
+                        color: Colors.black.withOpacity(0.5),
                         child: Text(
                           widget.event.eventName,
                           textAlign: TextAlign.center,
@@ -89,9 +94,9 @@ class _EventCardState extends State<EventCard>
                             fontSize: 28,
                             shadows: [
                               Shadow(
-                                blurRadius: 10, // Increase the blur radius
+                                blurRadius: 10,
                                 color: Colors.black,
-                                offset: Offset(4, 4), // Increase the offset
+                                offset: Offset(4, 4),
                               ),
                             ],
                           ),
@@ -188,13 +193,7 @@ class _EventCardState extends State<EventCard>
                                 fontSize: 20, fontWeight: FontWeight.bold),
                           ),
                           InkWell(
-                            onTap: () {
-                              getScreen(
-                                context,
-                                () => EventParticipantsScreen(
-                                    event: widget.event),
-                              );
-                            },
+                            onTap: () {},
                             child: Row(
                               children: [
                                 Icon(

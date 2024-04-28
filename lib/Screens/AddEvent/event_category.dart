@@ -3,15 +3,51 @@ import 'package:flutter/material.dart';
 class Category extends StatefulWidget {
   final Function(String selectedCategory, Color selectedColor)
       onCategoryChanged;
+  final String defaultSelectedValue;
+  final Color defaultSelectedColor;
 
-  const Category({Key? key, required this.onCategoryChanged}) : super(key: key);
+  const Category({
+    Key? key,
+    required this.onCategoryChanged,
+    required this.defaultSelectedValue,
+    required this.defaultSelectedColor,
+  }) : super(key: key);
 
   @override
   State<Category> createState() => _CategoryState();
 }
 
 class _CategoryState extends State<Category> {
-  int? selectedValue;
+  late int? selectedValue;
+  late Color selectedColor;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedValue = getSelectedValueByLabel(widget.defaultSelectedValue);
+    selectedColor = widget.defaultSelectedColor ?? Colors.black;
+  }
+
+  int? getSelectedValueByLabel(String label) {
+    switch (label) {
+      case 'Vino':
+        return 1;
+      case 'Spritz':
+        return 2;
+      case 'Bollicine':
+        return 3;
+      case 'Superalcolici':
+        return 4;
+      case 'Analcolico':
+        return 5;
+      case 'Street Food':
+        return 6;
+      case 'Vegano':
+        return 7;
+      default:
+        return null; // Default to null if label is not recognized
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,11 +108,12 @@ class _CategoryState extends State<Category> {
           onChanged: (int? value) {
             setState(() {
               selectedValue = value;
+              selectedColor = getCategoryColor(value ?? 0);
             });
 
             // Call the callback function immediately when a value is selected
             if (selectedValue != null) {
-              widget.onCategoryChanged(label, getCategoryColor(selectedValue!));
+              widget.onCategoryChanged(label, selectedColor);
             }
           },
         ),

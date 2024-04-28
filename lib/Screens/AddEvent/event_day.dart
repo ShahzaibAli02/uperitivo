@@ -1,21 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:uperitivo/Utils/helpers.dart'; // Make sure this import path is correct for your formatDate function
+import 'package:uperitivo/Utils/helpers.dart';
 
 class EventDay extends StatefulWidget {
   final Function(List<int> selectedDays, String selectedDate,
       bool isEventoUnicoSelected) onSelectionChanged;
+  String selectedDate;
+  final List<int> selectedDays;
+  bool isEventoUnicoSelected;
 
-  const EventDay({Key? key, required this.onSelectionChanged})
-      : super(key: key);
+  EventDay({
+    Key? key,
+    required this.onSelectionChanged,
+    required this.selectedDate,
+    required this.selectedDays,
+    required this.isEventoUnicoSelected,
+  }) : super(key: key);
 
   @override
   State<EventDay> createState() => _EventDayState();
 }
 
 class _EventDayState extends State<EventDay> {
-  String selectedDate = '';
-  List<int> selectedDays = [];
-  bool isEventoUnicoSelected = true;
+  // String selectedDate = '';
+  // List<int> selectedDays = [];
+  // bool isEventoUnicoSelected = true;
 
   @override
   Widget build(BuildContext context) {
@@ -33,16 +41,16 @@ class _EventDayState extends State<EventDay> {
             children: [
               Radio(
                 value: true,
-                groupValue: isEventoUnicoSelected,
+                groupValue: widget.isEventoUnicoSelected,
                 onChanged: (bool? value) {
                   if (value != null) {
                     setState(() {
-                      isEventoUnicoSelected = value;
-                      selectedDays
+                      widget.isEventoUnicoSelected = value;
+                      widget.selectedDays
                           .clear(); // Clear days when "Evento unico" is selected
                     });
-                    widget.onSelectionChanged(
-                        selectedDays, selectedDate, isEventoUnicoSelected);
+                    widget.onSelectionChanged(widget.selectedDays,
+                        widget.selectedDate, widget.isEventoUnicoSelected);
                   }
                 },
                 fillColor: MaterialStateColor.resolveWith(
@@ -92,14 +100,16 @@ class _EventDayState extends State<EventDay> {
 
                   if (pickedDate != null) {
                     setState(() {
-                      selectedDate = formatDate(
+                      widget.selectedDate = formatDate(
                           pickedDate); // Make sure the formatDate function exists and works as expected
                     });
-                    widget.onSelectionChanged(
-                        selectedDays, selectedDate, isEventoUnicoSelected);
+                    widget.onSelectionChanged(widget.selectedDays,
+                        widget.selectedDate, widget.isEventoUnicoSelected);
                   }
                 },
-                child: Text(selectedDate.isEmpty ? 'GG/MM/AAAA' : selectedDate),
+                child: Text(widget.selectedDate.isEmpty
+                    ? 'GG/MM/AAAA'
+                    : widget.selectedDate),
               ),
             ],
           ),
@@ -112,21 +122,21 @@ class _EventDayState extends State<EventDay> {
     return Row(
       children: [
         Checkbox(
-          value: selectedDays.contains(value),
+          value: widget.selectedDays.contains(value),
           onChanged: (bool? selected) {
             setState(() {
               if (selected == true) {
-                if (!selectedDays.contains(value)) {
-                  selectedDays.add(value);
+                if (!widget.selectedDays.contains(value)) {
+                  widget.selectedDays.add(value);
                 }
               } else {
-                selectedDays.remove(value);
+                widget.selectedDays.remove(value);
               }
-              isEventoUnicoSelected =
+              widget.isEventoUnicoSelected =
                   false; // Automatically deselect "Evento unico" when any day is selected
             });
-            widget.onSelectionChanged(
-                selectedDays, selectedDate, isEventoUnicoSelected);
+            widget.onSelectionChanged(widget.selectedDays, widget.selectedDate,
+                widget.isEventoUnicoSelected);
           },
         ),
         Text(label),

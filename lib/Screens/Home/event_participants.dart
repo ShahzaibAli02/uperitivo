@@ -8,8 +8,9 @@ import 'package:uperitivo/Utils/helpers.dart';
 
 class EventParticipantsScreen extends StatefulWidget {
   final EventModel event;
+  final Function onBackClicked;
 
-  EventParticipantsScreen({required this.event});
+  EventParticipantsScreen({required this.event, required this.onBackClicked});
 
   @override
   _EventParticipantsScreenState createState() =>
@@ -87,14 +88,17 @@ class _EventParticipantsScreenState extends State<EventParticipantsScreen> {
       body: Column(
         children: [
           Header(
-            onIconTap: () {},
+            onIconTap: () {
+              widget.onBackClicked();
+            },
             onDrawerTap: () {
               _openDrawer();
             },
+            showBackButton: true,
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(20),
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

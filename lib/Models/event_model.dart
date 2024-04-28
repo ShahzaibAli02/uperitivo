@@ -12,7 +12,7 @@ class EventModel {
   final String image;
   List<String> participants;
   final String untilDate;
-  final List day;
+  final List<int> day;
   final bool recurring;
   Map<String, int> rating;
   final String companyName;
@@ -83,9 +83,7 @@ class EventModel {
       image: json['image'],
       participants: List<String>.from(json['participants']),
       untilDate: json['untilDate'],
-      day: json['day'].runtimeType.toString() == "String"
-          ? [json['day']]
-          : json['day'],
+      day: (json['day'] as List<dynamic>).cast<int>(),
       recurring: json['recurring'],
       rating: Map<String, int>.from(json['rating']),
       companyName: json['companyName'],

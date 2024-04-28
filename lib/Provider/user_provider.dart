@@ -9,6 +9,14 @@ class UserProvider extends ChangeNotifier {
   UserModel? get currentUser => _currentUser;
 
   Map<String, List<EventModel>> get companyEventsMap => _companyEventsMap;
+  bool isEventEdited = false;
+
+  bool get eventEdited => isEventEdited;
+
+  set eventEdited(bool value) {
+    isEventEdited = value;
+    notifyListeners();
+  }
 
   set companyEventsMap(Map<String, List<EventModel>> eventsMap) {
     _companyEventsMap = eventsMap;

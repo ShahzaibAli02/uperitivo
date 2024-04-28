@@ -129,7 +129,7 @@ class Header extends StatelessWidget {
 
   Widget backButton(BuildContext context) {
     return InkWell(
-      onTap: () => Navigator.of(context).pop(),
+      onTap: onIconTap,
       child: const Padding(
         padding: EdgeInsets.all(8.0),
         child: Icon(Icons.arrow_back, size: 24, color: Colors.white),

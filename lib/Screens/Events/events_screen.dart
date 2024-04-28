@@ -8,13 +8,14 @@ import 'package:uperitivo/Screens/AddEvent/add_event.dart';
 import 'package:uperitivo/Screens/Components/drawer_screen.dart';
 import 'package:uperitivo/Screens/Components/header.dart';
 import 'package:uperitivo/Screens/Home/event_card.dart';
+import 'package:uperitivo/Screens/Home/event_detail_screen.dart';
 import 'package:uperitivo/Utils/helpers.dart';
 
 class EventsScreen extends StatefulWidget {
   const EventsScreen({Key? key}) : super(key: key);
 
   @override
-  _EventsScreenState createState() => _EventsScreenState();
+  State<EventsScreen> createState() => _EventsScreenState();
 }
 
 class _EventsScreenState extends State<EventsScreen> {
@@ -25,6 +26,8 @@ class _EventsScreenState extends State<EventsScreen> {
   double userLatitude = 0.0;
   double userLongitude = 0.0;
   String query = "";
+  bool isChild = false;
+  late EventModel clickedEvent;
 
   @override
   void initState() {
@@ -43,7 +46,9 @@ class _EventsScreenState extends State<EventsScreen> {
         userLongitude = position.longitude;
       });
     } catch (e) {
-      print("Error getting user location: $e");
+      if (mounted) {
+        showErrorSnackBar(context, "Error getting user location: $e");
+      }
     }
   }
 
@@ -99,153 +104,189 @@ class _EventsScreenState extends State<EventsScreen> {
       );
     }
 
-    return Scaffold(
-      key: scaffoldKey,
-      drawerEnableOpenDragGesture: false,
-      body: Column(
-        children: [
-          Header(
-            onIconTap: () {},
-            onDrawerTap: () {
-              openDrawer();
+    return isChild
+        ? EventDetailScreen(
+            event: clickedEvent,
+            onBackClicked: (value) {
+              if (value == "deleted") {
+                if (context.mounted) {
+                  showSuccessSnackBar(context, "Event deleted successfully");
+                }
+              }
+              setState(() {
+                isChild = false;
+              });
             },
-            showSearch: true,
-            onSearchChanged: (value) {
-              query = value;
-              setState(() {});
-            },
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Radio(
-                    value: 'All',
-                    groupValue: _selectedValue,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedValue = value!;
-                      });
-                    },
-                  ),
-                  const Text('All'),
-                  Radio(
-                    value: 'recurring',
-                    groupValue: _selectedValue,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedValue = value!;
-                      });
-                    },
-                  ),
-                  const Text('Sempre'),
-                  Radio(
-                    value: 'special',
-                    groupValue: _selectedValue,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedValue = value!;
-                      });
-                    },
-                  ),
-                  const Text('Speciale'),
-                ],
-              ),
-              Row(
-                children: [
-                  const Text('Ordina'),
-                  IconButton(
-                    icon: const Icon(Icons.expand_more),
-                    onPressed: () {
-                      showSortOptions();
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-          Expanded(
-            child: Consumer<UserProvider>(
-              builder: (context, userProvider, child) {
-                List<EventModel> events = userProvider.getcurrentUserEvents();
-                List<EventModel> filteredList = events
-                    .where((event) =>
-                        event.city.toLowerCase().contains(query.toLowerCase()))
-                    .toList();
-
-                if (query.isNotEmpty) {
-                  events = filteredList;
-                }
-
-                if (_selectedValue == "recurring") {
-                  events = events
-                      .where((event) => event.eventType == "recurring")
-                      .toList();
-                } else if (_selectedValue == "special") {
-                  events = events
-                      .where((event) => event.eventType == "special")
-                      .toList();
-                }
-
-                if (orderBy == "distance") {
-                  // Sort events by distance based on longitude and latitude
-                  events.sort((a, b) {
-                    // Replace 'a' and 'b' with the actual names of your latitude and longitude fields
-                    double distanceA = calculateDistance(
-                        a.latitude, a.longitude, userLatitude, userLongitude);
-                    double distanceB = calculateDistance(
-                        b.latitude, b.longitude, userLatitude, userLongitude);
-
-                    return distanceA.compareTo(distanceB);
-                  });
-                } else if (orderBy == "alphabet") {
-                  // Sort events by eventName in ascending order
-                  events.sort((a, b) => a.eventName.compareTo(b.eventName));
-                }
-
-                return events.isNotEmpty
-                    ? ListView.builder(
-                        addAutomaticKeepAlives: true,
-                        itemCount: events.length,
-                        itemBuilder: (context, index) {
-                          EventModel event = events[index];
-                          return SizedBox(
-                            height: 500,
-                            child: EventCard(
-                              event: event,
-                            ),
-                          );
-                        },
-                      )
-                    : Center(
-                        child: Text(
-                          userProvider.currentUser == null
-                              ? 'Accesso richiesto'
-                              : 'No events to show',
-                          style: const TextStyle(fontSize: 18),
+            action: "self",
+          )
+        : Scaffold(
+            key: scaffoldKey,
+            drawerEnableOpenDragGesture: false,
+            body: Column(
+              children: [
+                Header(
+                  onIconTap: () {},
+                  onDrawerTap: () {
+                    openDrawer();
+                  },
+                  showSearch: true,
+                  onSearchChanged: (value) {
+                    query = value;
+                    setState(() {});
+                  },
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Radio(
+                          value: 'All',
+                          groupValue: _selectedValue,
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedValue = value!;
+                            });
+                          },
                         ),
-                      );
-              },
+                        const Text('All'),
+                        Radio(
+                          value: 'recurring',
+                          groupValue: _selectedValue,
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedValue = value!;
+                            });
+                          },
+                        ),
+                        const Text('Sempre'),
+                        Radio(
+                          value: 'special',
+                          groupValue: _selectedValue,
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedValue = value!;
+                            });
+                          },
+                        ),
+                        const Text('Speciale'),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        const Text('Ordina'),
+                        IconButton(
+                          icon: const Icon(Icons.expand_more),
+                          onPressed: () {
+                            showSortOptions();
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                Expanded(
+                  child: Consumer<UserProvider>(
+                    builder: (context, userProvider, child) {
+                      print("changed");
+                      List<EventModel> events =
+                          userProvider.getcurrentUserEvents();
+                      List<EventModel> filteredList = events
+                          .where((event) => event.city
+                              .toLowerCase()
+                              .contains(query.toLowerCase()))
+                          .toList();
+
+                      if (query.isNotEmpty) {
+                        events = filteredList;
+                      }
+
+                      if (_selectedValue == "recurring") {
+                        events = events
+                            .where((event) => event.eventType == "recurring")
+                            .toList();
+                      } else if (_selectedValue == "special") {
+                        events = events
+                            .where((event) => event.eventType == "special")
+                            .toList();
+                      }
+
+                      if (orderBy == "distance") {
+                        // Sort events by distance based on longitude and latitude
+                        events.sort((a, b) {
+                          // Replace 'a' and 'b' with the actual names of your latitude and longitude fields
+                          double distanceA = calculateDistance(a.latitude,
+                              a.longitude, userLatitude, userLongitude);
+                          double distanceB = calculateDistance(b.latitude,
+                              b.longitude, userLatitude, userLongitude);
+
+                          return distanceA.compareTo(distanceB);
+                        });
+                      } else if (orderBy == "alphabet") {
+                        // Sort events by eventName in ascending order
+                        events
+                            .sort((a, b) => a.eventName.compareTo(b.eventName));
+                      }
+
+                      return events.isNotEmpty
+                          ? ListView.builder(
+                              addAutomaticKeepAlives: true,
+                              itemCount: events.length,
+                              itemBuilder: (context, index) {
+                                EventModel event = events[index];
+
+                                return Column(
+                                  children: [
+                                    EventCard(
+                                      event: event,
+                                      onClick: () {
+                                        setState(() {
+                                          clickedEvent = event;
+                                          isChild = true;
+                                        });
+                                      },
+                                      user: user!,
+                                      action: "self",
+                                    ),
+                                    const SizedBox(
+                                      height: 20,
+                                    ),
+                                  ],
+                                );
+                              },
+                            )
+                          : Center(
+                              child: Text(
+                                userProvider.currentUser == null
+                                    ? 'Accesso richiesto'
+                                    : 'No events to show',
+                                style: const TextStyle(fontSize: 18),
+                              ),
+                            );
+                    },
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
-      floatingActionButton: user?.userType == 'company'
-          ? FloatingActionButton(
-              onPressed: () {
-                getScreen(context, () => const AddEventHome());
-              },
-              shape: const CircleBorder(),
-              backgroundColor: const Color(0xff5887DC),
-              child: const Icon(
-                Icons.add,
-                color: Colors.white,
-              ),
-            )
-          : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      endDrawer: const DrawerScreen(),
-    );
+            floatingActionButton: user?.userType == 'company'
+                ? FloatingActionButton(
+                    onPressed: () {
+                      getScreen(
+                          context,
+                          () => const AddEventHome(
+                                action: "add",
+                              ));
+                    },
+                    shape: const CircleBorder(),
+                    backgroundColor: const Color(0xff5887DC),
+                    child: const Icon(
+                      Icons.add,
+                      color: Colors.white,
+                    ),
+                  )
+                : null,
+            floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+            endDrawer: const DrawerScreen(),
+          );
   }
 }

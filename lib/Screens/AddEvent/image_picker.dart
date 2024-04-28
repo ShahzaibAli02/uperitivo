@@ -6,7 +6,9 @@ import 'package:image_picker/image_picker.dart';
 
 class ImagePickerComponent extends StatefulWidget {
   final Function(XFile)? onImagePicked;
-  const ImagePickerComponent({Key? key, this.onImagePicked}) : super(key: key);
+  String? defaultImage;
+  ImagePickerComponent({Key? key, this.onImagePicked, this.defaultImage})
+      : super(key: key);
 
   @override
   State<ImagePickerComponent> createState() => _ImagePickerComponentState();
@@ -44,13 +46,15 @@ class _ImagePickerComponentState extends State<ImagePickerComponent> {
                     child: FittedBox(
                       child: (image != null)
                           ? _buildImageWidget(image!.path)
-                          : const Icon(
-                              Icons.image_outlined,
-                              color: Colors.blueGrey,
-                            ),
+                          : widget.defaultImage != null
+                              ? _buildDefaultImageWidget(widget.defaultImage!)
+                              : const Icon(
+                                  Icons.image_outlined,
+                                  color: Colors.blueGrey,
+                                ),
                     ),
                   ),
-                  if (image == null)
+                  if (image == null && widget.defaultImage == null)
                     Positioned(
                       top: 70,
                       right: size.width / 2 - 80,
@@ -80,13 +84,34 @@ class _ImagePickerComponentState extends State<ImagePickerComponent> {
         alignment: Alignment.center,
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            maxWidth: size.width, // Set a maximum width for the image
-            maxHeight: 250, // Set a maximum height for the image
+            maxWidth: size.width,
+            maxHeight: 250,
           ),
           child: AspectRatio(
             aspectRatio: 16 / 9,
             child: Image.file(
               File(imagePath),
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDefaultImageWidget(String imagePath) {
+    return ClipRect(
+      child: Align(
+        alignment: Alignment.center,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: size.width,
+            maxHeight: 250,
+          ),
+          child: AspectRatio(
+            aspectRatio: 16 / 9,
+            child: Image.network(
+              imagePath,
               fit: BoxFit.cover,
             ),
           ),
@@ -156,7 +181,7 @@ class _ImagePickerComponentState extends State<ImagePickerComponent> {
     if (pickedFile != null) {
       // await convertToBase64(pickedFile);
       if (widget.onImagePicked != null) {
-        widget.onImagePicked!(pickedFile);
+        // widget.onImagePicked!(pickedFile);
       }
     }
     setState(() {

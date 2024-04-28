@@ -74,7 +74,7 @@ class _LocationScreenState extends State<LocationScreen> {
                   filteredList.isNotEmpty ? filteredList[0].latitude : 0.0,
                   filteredList.isNotEmpty ? filteredList[0].longitude : 0.0,
                 ),
-                zoom: 0,
+                zoom: 15,
               ),
               onMapCreated: (GoogleMapController controller) {
                 _googleMapController = controller;
